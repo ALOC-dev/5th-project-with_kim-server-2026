@@ -73,9 +73,10 @@ Thumbs.db
 # ==========================================
 # Project Specific (부동산 프로젝트 관련)
 # ==========================================
-# API 키나 DB 비밀번호가 포함된 설정 파일 (Spring Boot 예시)
-# application-local.properties
-# application-secret.yml
+# 메인 설정 파일 및 API 키, DB 비밀번호가 포함된 파일들
+application.properties
+application-local.properties
+application-secret.yml
 
 # 프로젝트 내에서 업로드된 부동산 매물 이미지 및 파일 저장소
 /uploads/
