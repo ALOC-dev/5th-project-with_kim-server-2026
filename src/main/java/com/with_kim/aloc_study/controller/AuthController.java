@@ -38,4 +38,14 @@ public class AuthController {
 
         return ResponseEntity.ok(response);
     }
+
+    @RestController
+    @RequestMapping("/api/users")
+    public class UserController {
+
+        @GetMapping("/me")
+        public ResponseEntity<String> me() {
+            return ResponseEntity.ok("인증 성공");
+        }
+    }
 }

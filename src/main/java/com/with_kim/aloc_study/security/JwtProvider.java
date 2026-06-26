@@ -10,6 +10,10 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -44,6 +48,22 @@ public class JwtProvider {
                 .expiration(expiredDate)
                 .signWith(key)
                 .compact();
+    }
+
+    public Authentication getAuthentication(String token) {
+        String username = getUsername(token);
+
+        UserDetails userDetails = User.builder()
+                .username(username)
+                .password("")
+                .authorities("ROLE_USER")
+                .build();
+
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                "",
+                userDetails.getAuthorities()
+        );
     }
 
     public boolean validateToken(String token) {
