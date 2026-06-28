@@ -28,12 +28,13 @@ jobs:
             --document-name "AWS-RunShellScript" \
             --comment "Deploy Spring Boot" \
             --parameters 'commands=[
-              "cd /home/ubuntu/5th-project-with_kim-server-2026 || exit 1",
+              "set -e",
+              "cd /home/ubuntu/5th-project-with_kim-server-2026",
               "git fetch origin",
               "git checkout main",
               "git pull origin main",
-              "sudo docker-compose down || true",
-              "sudo docker-compose up -d --build"
+              "/usr/bin/docker-compose down || true",
+              "/usr/bin/docker-compose up -d --build"
             ]' \
             --query "Command.CommandId" \
             --output text)
