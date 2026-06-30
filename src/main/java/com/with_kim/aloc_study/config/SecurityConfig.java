@@ -25,9 +25,10 @@ public class SecurityConfig {
                         UsernamePasswordAuthenticationFilter.class
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/signup", "/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/login/kakao").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
-                        .anyRequest().authenticated()/* .permitAll() */
+                        .anyRequest().permitAll()
+//                        .authenticated()
                 )
                 .headers(headers -> headers
                         .addHeaderWriter(new XFrameOptionsHeaderWriter(
