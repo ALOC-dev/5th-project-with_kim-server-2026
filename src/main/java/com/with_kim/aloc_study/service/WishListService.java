@@ -22,6 +22,7 @@ public class WishListService {
     private final UserRepository userRepository;
     private final HouseRepository houseRepository;
 
+    // 찜 목록 추가
     public WishListResponse addWishList(Long userId, Long houseId) {
 
         Users user = userRepository.findById(userId)
@@ -40,6 +41,7 @@ public class WishListService {
         return WishListResponse.from(savedWishList);
     }
 
+    // 내 찜목록 조회
     @Transactional(readOnly = true)
     public List<WishListResponse> getMyWishList(Long userId) {
         Users user = userRepository.findById(userId)
@@ -51,6 +53,7 @@ public class WishListService {
                 .toList();
     }
 
+    // 찜 목록에서 삭제
     public void deleteWishList(Long userId, Long houseId) {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
