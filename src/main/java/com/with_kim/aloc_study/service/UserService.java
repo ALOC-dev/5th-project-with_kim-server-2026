@@ -21,10 +21,10 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
 
-    public Users create(String userId, String password, String username) {
+    public Users create(String loginId, String password, String username) {
         Users user = new Users();
 
-        user.setUserId(userId);
+        user.setLoginId(loginId);
         user.setPassword(passwordEncoder.encode(password));
         user.setUsername(username);
         this.userRepository.save(user);
@@ -34,10 +34,10 @@ public class UserService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        String userId = request.getUserId();
+        String loginId = request.getLoginId();
         String password = request.getPassword();
 
-        Users user = userRepository.findByUserId(userId)
+        Users user = userRepository.findByLoginId(loginId)
                 .orElseThrow(() -> new AuthenticationFailedException("존재하지 않는 사용자입니다."));
 
         if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {

@@ -42,8 +42,8 @@ public class JwtProvider {
         Date expiredDate = new Date(now.getTime() + expirationTime);
 
         return Jwts.builder()
-                .subject(user.getUserId())
-                .claim("userId", user.getId())
+                .subject(String.valueOf(user.getId()))
+                .claim("loginId", user.getLoginId())
                 .issuedAt(now)
                 .expiration(expiredDate)
                 .signWith(key)
