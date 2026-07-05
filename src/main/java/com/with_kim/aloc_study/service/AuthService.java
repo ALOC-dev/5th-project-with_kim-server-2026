@@ -25,13 +25,16 @@ public class AuthService {
         String kakaoAccessToken = oAuthToken.getAccess_token();
         KaKaoResponse.KakaoProfile kakaoProfile = kakaoUtil.requestProfile(kakaoAccessToken);
 
-        String username = "kakao_" + kakaoProfile.getId();
+        String userId = "kakao_" + kakaoProfile.getId();
+        String username = kakaoProfile.getKakao_account().getProfile().getNickname();
 
-        Users user = userRepository.findByUsername(username)
+        Users user = userRepository.findByUserId(userId)
                 .orElseGet(() -> {
                     Users newUser = new Users();
-                    newUser.setUsername(username);
+                    newUser.setUserId(userId);
                     newUser.setPassword(passwordEncoder.encode("KAKAO_USER"));
+                    newUser.setUsername(username);
+
                     return userRepository.save(newUser);
                 });
 

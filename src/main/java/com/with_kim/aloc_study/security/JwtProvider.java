@@ -42,7 +42,7 @@ public class JwtProvider {
         Date expiredDate = new Date(now.getTime() + expirationTime);
 
         return Jwts.builder()
-                .subject(user.getUsername())
+                .subject(user.getUserId())
                 .claim("userId", user.getId())
                 .issuedAt(now)
                 .expiration(expiredDate)

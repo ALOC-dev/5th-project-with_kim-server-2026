@@ -10,6 +10,8 @@ public class SignUpResponse {
 
     private long id;
 
+    private String userId;
+
     private String username;
 
 }
