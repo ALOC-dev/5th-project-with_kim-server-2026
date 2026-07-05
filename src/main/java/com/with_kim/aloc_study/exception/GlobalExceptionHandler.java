@@ -83,4 +83,17 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(resultDto, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ResultDto> handleInvalidRequest(InvalidRequestException e) {
+        logger.error("InvalidRequestException : {}", e.getMessage());
+
+        ResultDto resultDto = ResultDto.builder()
+                .success(false)
+                .message("InvalidRequestException : " + e.getMessage())
+                .code(HttpStatus.BAD_REQUEST.value())
+                .build();
+
+        return new ResponseEntity<>(resultDto, HttpStatus.BAD_REQUEST);
+    }
 }

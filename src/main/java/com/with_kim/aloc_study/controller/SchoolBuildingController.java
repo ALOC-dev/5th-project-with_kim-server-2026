@@ -22,7 +22,7 @@ public class SchoolBuildingController {
         return schoolBuildingService.getSchoolBuilding(schoolBuildingId);
     }
 
-    @GetMapping("/api/school-buildings/{schoolBuildingId}/houses")
+    @GetMapping("/api/school-building/{schoolBuildingId}/houses")
     public List<HouseWithDistanceResponse> getNearbyHouses(
             @PathVariable Long schoolBuildingId,
             @RequestParam(required = false) String sort,

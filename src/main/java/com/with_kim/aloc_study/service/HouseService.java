@@ -3,6 +3,7 @@ package com.with_kim.aloc_study.service;
 import com.with_kim.aloc_study.dto.response.HouseResponse;
 import com.with_kim.aloc_study.dto.response.HouseSchoolDistanceResponse;
 import com.with_kim.aloc_study.entity.House;
+import com.with_kim.aloc_study.exception.ResourceNotFoundException;
 import com.with_kim.aloc_study.repository.HouseRepository;
 import com.with_kim.aloc_study.repository.projection.HouseSchoolDistanceProjection;
 import jakarta.persistence.EntityNotFoundException;
@@ -25,11 +26,11 @@ public class HouseService {
                 .toList();
     }
 
-    public List<HouseResponse> getHousesInBoundingBox(Double swLat, Double swLng, Double neLat, Double neLng) {
+    /*public List<HouseResponse> getHousesInBoundingBox(Double swLat, Double swLng, Double neLat, Double neLng) {
         return houseRepository.findAllInBoundingBox(swLat, swLng, neLat, neLng).stream()
                 .map(HouseResponse::from)
                 .toList();
-    }
+    }*/
 
     public List<HouseResponse> getHousesInRadius(Double centerLng, Double centerLat, Double radius) {
         return houseRepository.findAllWithinRadius(centerLng, centerLat, radius).stream()
@@ -39,18 +40,18 @@ public class HouseService {
 
     public HouseResponse getHouse(Long houseId) {
         House house = houseRepository.findByIdWithBuilding(houseId)
-                .orElseThrow(() -> new EntityNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
+                .orElseThrow(() -> new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
         return HouseResponse.from(house);
     }
 
     public List<HouseSchoolDistanceResponse> getSchoolDistances(Long houseId) {
         houseRepository.findById(houseId)
-                .orElseThrow(() -> new EntityNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
+                .orElseThrow(() -> new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
 
         List<HouseSchoolDistanceProjection> projections = houseRepository.findAllSchoolDistancesByHouseId(houseId);
 
         if (projections.isEmpty()) {
-            throw new EntityNotFoundException("등록된 학교 건물이 없습니다.");
+            throw new ResourceNotFoundException("등록된 학교 건물이 없습니다.");
         }
 
         return projections.stream()

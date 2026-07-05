@@ -1,6 +1,5 @@
 package com.with_kim.aloc_study.entity;
 
-import com.with_kim.aloc_study.entity.Building;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
