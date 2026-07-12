@@ -2,6 +2,11 @@ services:
   app:
     build: .
     container_name: spring-app
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+    restart: unless-stopped
 
   nginx:
     image: nginx:latest
@@ -15,3 +20,4 @@ services:
 
     depends_on:
       - app
+    restart: unless-stopped #ec2 재부팅이나 컨테이너가 죽었을 때 자동 재시작
