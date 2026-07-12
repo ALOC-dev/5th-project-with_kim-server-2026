@@ -29,7 +29,10 @@ public class JwtProvider {
     private SecretKey key;
 
     @Value("${jwt.expiration-time}")
-    private long expirationTime;
+    private long accessExpirationTime;
+
+    @Value("${jwt.refresh-expiration-time}")
+    private long refreshaccessExpirationTime;
 
     @PostConstruct
     protected void init() {
@@ -37,13 +40,28 @@ public class JwtProvider {
         key = Keys.hmacShaKeyFor(secretKeyBytes);
     }
 
-    public String generateToken(Users user) {
+    public String generateAccessToken(Users user) {
         Date now = new Date();
-        Date expiredDate = new Date(now.getTime() + expirationTime);
+        Date expiredDate = new Date(now.getTime() + accessExpirationTime);
 
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
                 .claim("loginId", user.getLoginId())
+                .claim("type", "access")
+                .issuedAt(now)
+                .expiration(expiredDate)
+                .signWith(key)
+                .compact();
+    }
+
+    public String generateRefreshToken(Users user) {
+        Date now = new Date();
+        Date expiredDate = new Date(now.getTime() + refreshaccessExpirationTime);
+
+        return Jwts.builder()
+                .subject(String.valueOf(user.getId()))
+                .claim("loginId", user.getLoginId())
+                .claim("type", "refresh")
                 .issuedAt(now)
                 .expiration(expiredDate)
                 .signWith(key)
@@ -96,5 +114,32 @@ public class JwtProvider {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject();
+    }
+
+    public String getUserId(String token) {
+        return parseClaims(token)
+                .getSubject();
+    }
+
+    public Long getUserIdAsLong(String token) {
+        return Long.valueOf(getUserId(token));
+    }
+
+    public String getLoginId(String token) {
+        return parseClaims(token)
+                .get("loginId", String.class);
+    }
+
+    public String getTokenType(String token) {
+        return parseClaims(token)
+                .get("type", String.class);
+    }
+
+    private Claims parseClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

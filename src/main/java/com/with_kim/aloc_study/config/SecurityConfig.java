@@ -26,9 +26,10 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/login/kakao").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
-                        .anyRequest().permitAll()
-//                        .authenticated()
+                        .requestMatchers("/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
+                        .anyRequest()
+//                        .permitAll()
+                        .authenticated()
                 )
                 .headers(headers -> headers
                         .addHeaderWriter(new XFrameOptionsHeaderWriter(

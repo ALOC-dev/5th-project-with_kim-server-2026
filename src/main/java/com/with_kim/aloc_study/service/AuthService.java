@@ -2,7 +2,9 @@ package com.with_kim.aloc_study.service;
 
 import com.with_kim.aloc_study.dto.response.KaKaoResponse;
 import com.with_kim.aloc_study.dto.response.LoginResponse;
+import com.with_kim.aloc_study.entity.Refresh;
 import com.with_kim.aloc_study.entity.Users;
+import com.with_kim.aloc_study.repository.RefreshTokenRepository;
 import com.with_kim.aloc_study.repository.UserRepository;
 import com.with_kim.aloc_study.security.JwtProvider;
 import com.with_kim.aloc_study.util.KakaoUtil;
@@ -10,6 +12,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +23,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     public LoginResponse oAuthLogin(String accessCode, HttpServletRequest httpServletRequest) {
         KaKaoResponse.OAuthToken oAuthToken = kakaoUtil.requestToken(accessCode);
@@ -38,9 +43,28 @@ public class AuthService {
                     return userRepository.save(newUser);
                 });
 
-        String token = jwtProvider.generateToken(user);
+        String accessToken = jwtProvider.generateAccessToken(user);
+        String refreshToken = jwtProvider.generateRefreshToken(user);
 
-        return new LoginResponse(user.getId(), token, "Bearer");
+        Refresh savedToken = refreshTokenRepository.findByUserId(user.getId())
+                .orElse(null);
+
+        if (savedToken == null) {
+            refreshTokenRepository.save(
+                    Refresh.builder()
+                            .userId(user.getId())
+                            .token(refreshToken)
+                            .expiresAt(LocalDateTime.now().plusDays(7))
+                            .build()
+            );
+        } else {
+            savedToken.updateToken(
+                    refreshToken,
+                    LocalDateTime.now().plusDays(7)
+            );
+        }
+
+        return new LoginResponse(user.getId(), accessToken, refreshToken, "Bearer");
     }
 
 }

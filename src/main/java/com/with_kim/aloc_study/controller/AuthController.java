@@ -1,9 +1,11 @@
 package com.with_kim.aloc_study.controller;
 
 import com.with_kim.aloc_study.dto.request.LoginRequest;
+import com.with_kim.aloc_study.dto.request.ReissueRequest;
 import com.with_kim.aloc_study.dto.request.SignUpRequest;
 import com.with_kim.aloc_study.dto.response.LoginResponse;
 import com.with_kim.aloc_study.dto.response.SignUpResponse;
+import com.with_kim.aloc_study.dto.response.TokenResponse;
 import com.with_kim.aloc_study.entity.Users;
 import com.with_kim.aloc_study.service.AuthService;
 import com.with_kim.aloc_study.service.UserService;
@@ -81,13 +83,9 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-//    @RestController
-//    @RequestMapping("/api/users")
-//    public class UserController {
-//
-//        @GetMapping("/me")
-//        public ResponseEntity<String> me() {
-//            return ResponseEntity.ok("인증 성공");
-//        }
-//    }
+    @Operation(summary = "accessToken 갱신", description = "refreshToken을 사용하여 새로운 accessToken을 발급받습니다.")
+    @PostMapping("/reissue")
+    public TokenResponse reissue(@RequestBody ReissueRequest request) {
+        return userService.reissue(request.refreshToken());
+    }
 }
