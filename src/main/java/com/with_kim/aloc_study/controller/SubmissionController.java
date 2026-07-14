@@ -1,10 +1,13 @@
 package com.with_kim.aloc_study.controller;
 
 import com.with_kim.aloc_study.dto.response.SubmissionResponse;
+import com.with_kim.aloc_study.entity.AnalysisResult;
 import com.with_kim.aloc_study.entity.Submission;
+import com.with_kim.aloc_study.repository.AnalysisResultRepository;
 import com.with_kim.aloc_study.repository.SubmissionRepository;
 import com.with_kim.aloc_study.service.SubmissionService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
 
@@ -31,16 +32,16 @@ public class SubmissionController {
 
     private final SubmissionService submissionService;
     private final SubmissionRepository submissionRepository;
-    private final JsonMapper jsonMapper;
+    private final AnalysisResultRepository analysisResultRepository;
 
     public SubmissionController(
             SubmissionService submissionService,
             SubmissionRepository submissionRepository,
-            JsonMapper jsonMapper
+            AnalysisResultRepository analysisResultRepository
     ) {
         this.submissionService = submissionService;
         this.submissionRepository = submissionRepository;
-        this.jsonMapper = jsonMapper;
+        this.analysisResultRepository = analysisResultRepository;
     }
 
     @PostMapping(value = "/api/submissions", consumes = "multipart/form-data")
@@ -69,21 +70,15 @@ public class SubmissionController {
      * 제출 건의 현재 상태와, 분석이 끝났다면(status=ANALYZED) 결과까지 함께 반환한다.
      * 프론트에서 짧은 주기로 폴링하거나, 나중에 웹소켓/SSE로 바꿀 수 있는 자리.
      */
+    @Transactional(readOnly = true)
     @GetMapping("/api/submissions/{submissionId}")
     public ResponseEntity<SubmissionResponse> getSubmission(@PathVariable String submissionId) {
         Submission submission = submissionRepository.findBySubmissionId(submissionId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "submission not found: " + submissionId));
 
-        JsonNode analysis = parseAnalysisJson(submission.getAnalysisResultJson());
+        AnalysisResult analysis = analysisResultRepository.findBySubmission_SubmissionId(submissionId)
+                .orElse(null);
         return ResponseEntity.ok(SubmissionResponse.from(submission, analysis));
-    }
-
-    private JsonNode parseAnalysisJson(String json) {
-        if (json == null) {
-            return null; // 아직 분석 전이면 analysisResultJson이 비어있으므로 null 그대로 반환
-        }
-        // Jackson 3의 JsonMapper는 체크 예외 대신 JacksonException(unchecked)을 던진다.
-        return jsonMapper.readTree(json);
     }
 }

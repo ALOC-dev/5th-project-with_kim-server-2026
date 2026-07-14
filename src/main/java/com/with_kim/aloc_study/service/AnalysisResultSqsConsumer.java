@@ -70,8 +70,14 @@ public class AnalysisResultSqsConsumer {
             JsonNode root = jsonMapper.readTree(message.body());
             String submissionId = extractSubmissionId(root);
             JsonNode analysis = extractAnalysis(root);
+            JsonNode rawResult = root.path("rawResult");
 
-            analysisResultService.applyResult(submissionId, analysis);
+            analysisResultService.applyResult(
+                    submissionId,
+                    analysis,
+                    textOrNull(rawResult, "bucket"),
+                    textOrNull(rawResult, "key")
+            );
             deleteMessage(message);
 
             log.info("분석 결과 SQS 메시지 처리 완료: submissionId={}, messageId={}",
@@ -96,6 +102,11 @@ public class AnalysisResultSqsConsumer {
             throw new IllegalArgumentException("분석 결과 메시지에 analysis가 없습니다");
         }
         return analysis;
+    }
+
+    private String textOrNull(JsonNode node, String fieldName) {
+        JsonNode value = node.path(fieldName);
+        return value.isMissingNode() || value.isNull() ? null : value.asString();
     }
 
     private void deleteMessage(Message message) {

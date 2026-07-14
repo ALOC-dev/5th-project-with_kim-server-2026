@@ -62,13 +62,6 @@ public class Submission {
     @Column(nullable = false, length = 20)
     private SubmissionStatus status;
 
-    // Lambda로부터 받은 분석 결과. 세부 항목이 계속 늘어날 수 있어(위험도 상세,
-    // HUG/LH 사전점검 항목 등) 구조를 고정하지 않고 JSON 원문을 그대로 저장한다.
-    // PostgreSQL이라 컬럼 타입을 TEXT 대신 실제 jsonb로 만들면 이후 JSON 연산자로
-    // 조회도 가능하지만(예: analysis_result->>'risk_level'), 우선은 단순하게 TEXT로 둔다.
-    @Column(name = "analysis_result_json", columnDefinition = "TEXT")
-    private String analysisResultJson;
-
     // 목록/필터링처럼 자주 조회할 값은 JSON 안에 묻어두지 않고 별도 컬럼으로 꺼내둔다.
     @Column(name = "risk_level", length = 20)
     private String riskLevel;
@@ -115,9 +108,8 @@ public class Submission {
         this.updatedAt = LocalDateTime.now();
     }
 
-    /** Lambda로부터 받은 분석 결과를 반영하고 상태를 ANALYZED로 전이한다. */
-    public void applyAnalysisResult(String resultJson, String riskLevel, Double riskScore) {
-        this.analysisResultJson = resultJson;
+    /** Lambda로부터 받은 분석 요약을 반영하고 상태를 ANALYZED로 전이한다. */
+    public void applyAnalysisSummary(String riskLevel, Double riskScore) {
         this.riskLevel = riskLevel;
         this.riskScore = riskScore;
         this.analyzedAt = LocalDateTime.now();

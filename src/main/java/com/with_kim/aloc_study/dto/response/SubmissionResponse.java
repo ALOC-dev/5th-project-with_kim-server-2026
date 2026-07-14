@@ -1,22 +1,22 @@
 package com.with_kim.aloc_study.dto.response;
 
+import com.with_kim.aloc_study.entity.AnalysisResult;
 import com.with_kim.aloc_study.entity.Submission;
-import tools.jackson.databind.JsonNode;
 
 public record SubmissionResponse(
         String submissionId,
         String status,
         String riskLevel,
         Double riskScore,
-        JsonNode analysis
+        AnalysisResultResponse analysis
 ) {
-    public static SubmissionResponse from(Submission submission, JsonNode analysis) {
+    public static SubmissionResponse from(Submission submission, AnalysisResult analysis) {
         return new SubmissionResponse(
                 submission.getSubmissionId(),
                 submission.getStatus().name(),
                 submission.getRiskLevel(),
                 submission.getRiskScore(),
-                analysis
+                analysis == null ? null : AnalysisResultResponse.from(analysis)
         );
     }
 }
