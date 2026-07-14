@@ -15,8 +15,6 @@ public class ReviewResponse {
 
     private long id;
 
-    private long userId;
-
     private String username;
 
     private long houseId;
@@ -25,7 +23,13 @@ public class ReviewResponse {
 
     private LocalDateTime updatedAt;
 
-    private int rating;
+    private int cleanlinessRating;
+
+    private int managementRating;
+
+    private int locationRating;
+
+    private int priceRating;
 
     private String text;
 
@@ -42,12 +46,14 @@ public class ReviewResponse {
 
         return new ReviewResponse(
                 review.getId(),
-                user.getId(),
                 user.getUsername(),
                 house.getId(),
                 review.getCreatedAt(),
                 review.getUpdatedAt(),
-                review.getRating(),
+                review.getCleanlinessRating(),
+                review.getManagementRating(),
+                review.getLocationRating(),
+                review.getPriceRating(),
                 review.getText(),
                 review.getImage_url1(),
                 review.getImage_url2(),
