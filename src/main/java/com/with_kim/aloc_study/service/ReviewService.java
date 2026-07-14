@@ -10,6 +10,8 @@ import com.with_kim.aloc_study.repository.HouseRepository;
 import com.with_kim.aloc_study.repository.ReviewRepository;
 import com.with_kim.aloc_study.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +39,10 @@ public class ReviewService {
         Review review = new Review(
                 user,
                 house,
-                request.getRating(),
+                request.getCleanlinessRating(),
+                request.getManagementRating(),
+                request.getLocationRating(),
+                request.getPriceRating(),
                 request.getText(),
                 request.getImageUrl1(),
                 request.getImageUrl2(),
@@ -61,11 +66,9 @@ public class ReviewService {
 
     // 리뷰 전체 조회
     @Transactional(readOnly = true)
-    public List<ReviewResponse> getAllReviews() {
-        return reviewRepository.findAll()
-                .stream()
-                .map(ReviewResponse::from)
-                .toList();
+    public Page<ReviewResponse> getAllReviews(Pageable pageable) {
+        return reviewRepository.findAll(pageable)
+                .map(ReviewResponse::from);
     }
 
     // 특정 매물 리뷰 조회
@@ -84,7 +87,10 @@ public class ReviewService {
                 .orElseThrow(() -> new ResourceNotFoundException("리뷰를 찾을 수 없습니다."));
 
         review.update(
-                request.getRating(),
+                request.getCleanlinessRating(),
+                request.getManagementRating(),
+                request.getLocationRating(),
+                request.getPriceRating(),
                 request.getText(),
                 request.getImageUrl1(),
                 request.getImageUrl2(),
