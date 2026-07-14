@@ -10,3 +10,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+  jwt:
+    //jwt설정해야함
