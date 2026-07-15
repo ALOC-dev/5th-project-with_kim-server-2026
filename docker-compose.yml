@@ -2,11 +2,10 @@ services:
   app:
     build: .
     container_name: spring-app
-    environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
     restart: unless-stopped
+
+    env_file:
+      - .env
 
   nginx:
 
