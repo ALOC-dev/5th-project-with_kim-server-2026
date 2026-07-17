@@ -83,4 +83,18 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(resultDto, HttpStatus.BAD_REQUEST);
     }
+
+    // 임베딩 API 예외
+    @ExceptionHandler(EmbeddingException.class)
+    public ResponseEntity<ResultDto> handleEmbedding(EmbeddingException e){
+        logger.error("Embedding Error : {}",e.getMessage());
+
+        ResultDto resultDto=ResultDto.builder()
+                .success(false)
+                .message("Embedding Error : "+e.getMessage())
+                .code(HttpStatus.BAD_GATEWAY.value())
+                .build();
+
+        return new ResponseEntity<>(resultDto, HttpStatus.BAD_GATEWAY);
+    }
 }
