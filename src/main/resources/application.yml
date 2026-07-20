@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/mydb
+    username: myuser
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: update   # 초기 개발 단계는 update, 안정화되면 validate로 전환
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+kakao:
+  api:
+    key: 8c34ec03222708825fd7efcb54b09075
+    url: https://dapi.kakao.com
