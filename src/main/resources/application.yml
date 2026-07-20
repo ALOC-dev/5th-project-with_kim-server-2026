@@ -10,3 +10,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  task:
+    execution:
+      pool:
+        core-size: 5
+        max-size: 10
+kakao:
+  api:
+    key: 8c34ec03222708825fd7efcb54b09075
+    url: https://dapi.kakao.com

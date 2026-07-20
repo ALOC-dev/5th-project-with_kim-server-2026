@@ -1,8 +1,11 @@
 package com.with_kim.aloc_study.service;
 
+import com.with_kim.aloc_study.dto.response.HouseResponse;
 import com.with_kim.aloc_study.dto.response.InfrastructureResponse;
+import com.with_kim.aloc_study.entity.House;
 import com.with_kim.aloc_study.entity.Infrastructure;
 import com.with_kim.aloc_study.exception.InvalidRequestException;
+import com.with_kim.aloc_study.exception.ResourceNotFoundException;
 import com.with_kim.aloc_study.repository.HouseRepository;
 import com.with_kim.aloc_study.repository.InfrastructureRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,6 +22,7 @@ public class InfrastructureService {
 
     private final InfrastructureRepository infrastructureRepository;
     private final HouseRepository houseRepository;
+
 
     private static final double DEFAULT_RADIUS_METERS = 500.0;
 
@@ -59,7 +63,7 @@ public class InfrastructureService {
     // 특정 매물 주변 인프라 목록 조회
     public List<InfrastructureResponse> getNearbyInfrastructures(Long houseId, Double radiusMeters) {
         houseRepository.findById(houseId)
-                .orElseThrow(() -> new EntityNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
+                .orElseThrow(() -> new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
 
         double radius = radiusMeters != null ? radiusMeters : DEFAULT_RADIUS_METERS;
 

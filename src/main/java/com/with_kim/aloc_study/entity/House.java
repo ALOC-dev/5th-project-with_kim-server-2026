@@ -4,6 +4,14 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 @Entity
 @Table(name = "houses")
@@ -36,6 +44,30 @@ public class House{
     private Direction direction;
     private Integer floor;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private String metadata;
+
+    @Column(name = "metadata_updated_at")
+    private LocalDateTime metadataUpdatedAt;
+
+    private String image1Url;
+    private String image2Url;
+    private String image3Url;
+
+    public List<String> getImageUrls() {
+        return Stream.of(image1Url, image2Url, image3Url)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    public boolean needsMetadataUpdate(){
+        if(metadata == null){
+            return true;
+        }
+
+        return metadataUpdatedAt.isBefore(LocalDateTime.now().minusDays(30));
+    }
 
     public enum ContractType {
         SALE,
@@ -56,5 +88,10 @@ public class House{
 
     public Double getLongitude() {
         return building.getLongitude();
+    }
+
+    public void updateMetadata(String metadataJson) {
+        this.metadata = metadataJson;
+        this.metadataUpdatedAt = LocalDateTime.now();
     }
 }
