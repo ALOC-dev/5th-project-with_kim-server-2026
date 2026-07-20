@@ -2,16 +2,15 @@ package com.with_kim.aloc_study.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 @AllArgsConstructor
-public class SignUpResponse {
-
+public class LoginResponse {
     private long id;
 
-    private String loginId;
+    private String accessToken;
 
-    private String username;
+    private String refreshToken;
 
+    private String TokenType;
 }
