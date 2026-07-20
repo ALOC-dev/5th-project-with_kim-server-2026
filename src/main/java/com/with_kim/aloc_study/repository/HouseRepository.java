@@ -21,6 +21,10 @@ public interface HouseRepository extends JpaRepository<House, Long> {
             countQuery = "SELECT COUNT(h) FROM House h")
     Page<House> findAllWithBuilding(Pageable pageable);
 
+    //모든 매물 찾기(페이징 없음)
+    @Query("SELECT h FROM House h JOIN FETCH h.building")
+    List<House> findAllWithBuildingForBatch();
+
     //ID로 매물 찾기
     @Query("SELECT h FROM House h JOIN FETCH h.building WHERE h.id = :id")
     Optional<House> findByIdWithBuilding(@Param("id") Long id);

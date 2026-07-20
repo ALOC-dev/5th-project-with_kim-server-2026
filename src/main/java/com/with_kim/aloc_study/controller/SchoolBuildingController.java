@@ -17,12 +17,12 @@ public class SchoolBuildingController {
 
     private final SchoolBuildingService schoolBuildingService;
 
-    @GetMapping("/api/school-building/{schoolBuildingId}")
+    @GetMapping("/api/school-buildings/{schoolBuildingId}")
     public SchoolBuildingResponse getSchoolBuilding(@PathVariable Long schoolBuildingId) {
         return schoolBuildingService.getSchoolBuilding(schoolBuildingId);
     }
 
-    @GetMapping("/api/school-building/{schoolBuildingId}/houses")
+    @GetMapping("/api/school-buildings/{schoolBuildingId}/houses")
     public List<HouseWithDistanceResponse> getNearbyHouses(
             @PathVariable Long schoolBuildingId,
             @RequestParam(required = false) String sort,
