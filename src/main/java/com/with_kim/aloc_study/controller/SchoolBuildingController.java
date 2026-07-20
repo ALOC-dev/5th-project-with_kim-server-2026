@@ -17,7 +17,7 @@ public class SchoolBuildingController {
 
     private final SchoolBuildingService schoolBuildingService;
 
-    @GetMapping("/api/school-building/{schoolBuildingId}")
+    @GetMapping("/api/school-buildings/{schoolBuildingId}")
     public SchoolBuildingResponse getSchoolBuilding(@PathVariable Long schoolBuildingId) {
         return schoolBuildingService.getSchoolBuilding(schoolBuildingId);
     }
