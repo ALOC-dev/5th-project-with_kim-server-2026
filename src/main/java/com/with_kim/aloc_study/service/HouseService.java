@@ -104,6 +104,21 @@ public class HouseService {
         if (condition.maxDistanceFromSchool() != null && condition.maxDistanceFromSchool() <= 0) {
             throw new InvalidRequestException("학교와의 거리는 0보다 커야 합니다.");
         }
+
+        if (condition.minPrice() != null && condition.maxPrice() != null
+                && condition.minPrice() > condition.maxPrice()) {
+            throw new InvalidRequestException("보증금 최소값이 최대값보다 클 수 없습니다.");
+        }
+
+        if (condition.minDeposit() != null && condition.maxDeposit() != null
+                && condition.minDeposit() > condition.maxDeposit()) {
+            throw new InvalidRequestException("보증금 최소값이 최대값보다 클 수 없습니다.");
+        }
+
+        if (condition.minMonthlyRent() != null && condition.maxMonthlyRent() != null
+                && condition.minMonthlyRent() > condition.maxMonthlyRent()) {
+            throw new InvalidRequestException("월세 최소값이 최대값보다 클 수 없습니다.");
+        }
     }
 }
 

@@ -55,6 +55,10 @@ public class HouseController {
             @RequestParam(required = false) String contractType,
             @RequestParam(required = false) Long minPrice,
             @RequestParam(required = false) Long maxPrice,
+            @RequestParam(required = false) Long minDeposit,
+            @RequestParam(required = false) Long maxDeposit,
+            @RequestParam(required = false) Long minMonthlyRent,
+            @RequestParam(required = false) Long maxMonthlyRent,
             @RequestParam(required = false) Double minArea,
             @RequestParam(required = false) Double maxArea,
             @RequestParam(required = false) Integer minRoomNumber,
@@ -85,7 +89,8 @@ public class HouseController {
             @RequestParam(required = false, defaultValue = "20") int size
     ) {
         HouseSearchCondition condition = new HouseSearchCondition(
-                contractType, minPrice, maxPrice, minArea, maxArea,
+                contractType, minPrice, maxPrice, minDeposit, maxDeposit,
+                minMonthlyRent, maxMonthlyRent, minArea, maxArea,
                 minRoomNumber, maxManagementFee, minFloor, maxFloor,
                 centerLat, centerLng, radius, swLat, swLng, neLat, neLng,
                 schoolBuildingId, maxDistanceFromSchool,

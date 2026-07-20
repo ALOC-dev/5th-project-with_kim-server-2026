@@ -26,11 +26,15 @@ public class House{
     @JoinColumn(name = "building_id")
     private Building building;
 
-    private Long price;
+    private Long price; //매매가
+    private Long deposit; //보증금
+    private Long monthlyRent; //월세
+    private Long managementFee; //관리비
+
     private Double area;
     private Integer roomNumber; //방 수
     private Integer toilet; //욕실 수
-    private Long managementFee; //관리비
+
 
     @Enumerated(EnumType.STRING)
     private ContractType contractType;   // 매매/전세/월세

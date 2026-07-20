@@ -39,6 +39,8 @@ public class HouseQueryRepository {
                     .where(
                             contractTypeEq(condition.contractType()),
                             priceBetween(condition.minPrice(), condition.maxPrice()),
+                            depositBetween(condition.minDeposit(), condition.maxDeposit()),
+                            monthlyRentBetween(condition.minMonthlyRent(), condition.maxMonthlyRent()),
                             areaBetween(condition.minArea(), condition.maxArea()),
                             minRoomNumberGoe(condition.minRoomNumber()),
                             maxManagementFeeLoe(condition.maxManagementFee()),
@@ -125,6 +127,8 @@ public class HouseQueryRepository {
     private boolean hasBasicCondition(HouseSearchCondition condition){
         return condition.contractType() != null
             || condition.minPrice() != null || condition.maxPrice() != null
+                || condition.minDeposit() != null || condition.maxDeposit() != null
+                || condition.minMonthlyRent() != null || condition.maxMonthlyRent() != null
             || condition.minArea() != null || condition.maxArea() != null
             || condition.minRoomNumber() != null
             || condition.maxManagementFee() != null
@@ -167,11 +171,27 @@ public class HouseQueryRepository {
                 : null;
     }
 
-    // 가격 범위
+    //매매가 범위
     private BooleanExpression priceBetween(Long minPrice, Long maxPrice) {
         if (minPrice != null && maxPrice != null) return house.price.between(minPrice, maxPrice);
         if (minPrice != null) return house.price.goe(minPrice);
         if (maxPrice != null) return house.price.loe(maxPrice);
+        return null;
+    }
+
+    //보증금 범위
+    private BooleanExpression depositBetween(Long minDeposit, Long maxDeposit) {
+        if (minDeposit != null && maxDeposit != null) return house.deposit.between(minDeposit, maxDeposit);
+        if (minDeposit != null) return house.deposit.goe(minDeposit);
+        if (maxDeposit != null) return house.deposit.loe(maxDeposit);
+        return null;
+    }
+
+    //월세 범위
+    private BooleanExpression monthlyRentBetween(Long minMonthlyRent, Long maxMonthlyRent) {
+        if (minMonthlyRent != null && maxMonthlyRent != null) return house.monthlyRent.between(minMonthlyRent, maxMonthlyRent);
+        if (minMonthlyRent != null) return house.monthlyRent.goe(minMonthlyRent);
+        if (maxMonthlyRent != null) return house.monthlyRent.loe(maxMonthlyRent);
         return null;
     }
 
