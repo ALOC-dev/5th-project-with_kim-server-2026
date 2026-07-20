@@ -28,6 +28,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(resultDto, HttpStatus.BAD_REQUEST);
     }
 
+    //카카오맵 API 오류
+    @ExceptionHandler(KakaoApiException.class)
+    public ResponseEntity<ResultDto> handleKakaoApiException(KakaoApiException e) {
+
+        logger.error("Kakao API Error : {}", e.getMessage());
+
+        ResultDto resultDto = ResultDto.builder()
+                .success(false)
+                .message(e.getMessage())
+                .code(e.getStatus().value())
+                .build();
+
+        return new ResponseEntity<>(resultDto, e.getStatus());
+    }
+
     // NotFound 예외
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ResultDto> handleResourceNotFound(ResourceNotFoundException e) {
@@ -78,6 +93,19 @@ public class GlobalExceptionHandler {
         ResultDto resultDto = ResultDto.builder()
                 .success(false)
                 .message("IllegalArgumentException : " + e.getMessage())
+                .code(HttpStatus.BAD_REQUEST.value())
+                .build();
+
+        return new ResponseEntity<>(resultDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ResultDto> handleInvalidRequest(InvalidRequestException e) {
+        logger.error("InvalidRequestException : {}", e.getMessage());
+
+        ResultDto resultDto = ResultDto.builder()
+                .success(false)
+                .message("InvalidRequestException : " + e.getMessage())
                 .code(HttpStatus.BAD_REQUEST.value())
                 .build();
 
