@@ -139,6 +139,10 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     ORDER BY
         CASE WHEN :sort = 'PRICE_ASC'  THEN h.price END ASC,
         CASE WHEN :sort = 'PRICE_DESC' THEN h.price END DESC,
+        CASE WHEN :sort = 'DEPOSIT_ASC' THEN h.deposit END ASC,
+        CASE WHEN :sort = 'DEPOSIT_DESC' THEN h.deposit END DESC,
+        CASE WHEN :sort = 'MONTHLY_RENT_ASC' THEN h.monthly_rent END ASC,
+        CASE WHEN :sort = 'MONTHLY_RENT_DESC' THEN h.monthly_rent END DESC,
         CASE WHEN :sort = 'AREA_ASC'   THEN h.area  END ASC,
         CASE WHEN :sort = 'AREA_DESC'  THEN h.area  END DESC,
         CASE WHEN :sort = 'FLOOR_ASC'  THEN h.floor END ASC,

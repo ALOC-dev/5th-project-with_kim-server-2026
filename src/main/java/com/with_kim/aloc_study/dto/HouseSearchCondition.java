@@ -3,8 +3,9 @@ package com.with_kim.aloc_study.dto;
 public record HouseSearchCondition(
         // 기본 조건
         String contractType,
-        Long minPrice,
-        Long maxPrice,
+        Long minPrice, Long maxPrice,
+        Long minDeposit, Long maxDeposit,           // 추가
+        Long minMonthlyRent, Long maxMonthlyRent,
         Double minArea,
         Double maxArea,
         Integer minRoomNumber,
