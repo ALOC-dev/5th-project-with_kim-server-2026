@@ -1,0 +1,157 @@
+package com.with_kim.aloc_study.util;
+
+import com.with_kim.aloc_study.dto.NearbyInfo;
+import com.with_kim.aloc_study.entity.Building;
+import com.with_kim.aloc_study.entity.House;
+import org.springframework.boot.autoconfigure.info.ProjectInfoProperties;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+@Component
+public class HouseFeatureTextBuilder {
+    private static final int NEW_BUILDING_YEARS = 5;//신축기준
+    private static final int OLD_BUILDING_YEARS = 15;//구축기준
+    private static final int LOW_FLOOR_MAX = 3;//저층
+    private static final double SMALL_AREA_MAX = 40.0; //㎡ 소형
+    private static final double MEDIUM_AREA_MAX = 70.0;//40~70㎡ 중형
+
+    public String build(House h, NearbyInfo nearby) {
+        Building b = h.getBuilding();
+        List<String> parts = new ArrayList<>();
+
+        //계약유형, 가격
+        if (h.getContractType() != null) {
+            switch (h.getContractType()) {
+                case MONTHLY -> parts.add("월세 %d만원".formatted(manwon(h.getPrice())));
+                case JEONSE -> parts.add("전세 %d만원".formatted(manwon(h.getPrice())));
+                case SALE -> parts.add("매매 %d만원".formatted(manwon(h.getPrice())));
+            }
+            if (h.getPrice() != null) {
+                long m = manwon(h.getPrice());
+                switch (h.getContractType()) {
+                    case MONTHLY -> {
+                        if (m <= 50) parts.add("저렴한 월세 가성비");
+                        else if (m >= 90) parts.add("비싼 고급");
+                    }
+                    case JEONSE -> {
+                        if (m <= 30000) parts.add("저렴한 전세 가성비");      // 3억 이하
+                        else if (m >= 80000) parts.add("비싼 고급");           // 8억 이상
+                    }
+                    case SALE -> {
+                        if (m <= 50000) parts.add("저렴한 가성비");            // 5억 이하
+                        else if (m >= 120000) parts.add("비싼 고급 프리미엄");  // 12억 이상
+                    }
+                }
+            }
+        }
+
+        //관리비, 월 총 부담
+        if(h.getManagementFee()!=null){
+            parts.add("관리비 %d만원".formatted(manwon(h.getManagementFee())));
+            if(h.getContractType()==House.ContractType.MONTHLY && h.getPrice()!=null){
+                parts.add("월 총 부담 %d만원".formatted(manwon(h.getPrice()+h.getManagementFee())));
+            }
+        }
+
+        //면적, 평수 추상 감각
+        if(h.getArea()!=null){
+            parts.add("전용면적 %.0f㎡ %d평".formatted(h.getArea(),Math.round(h.getArea()/3.3058)));
+            if(h.getArea()<=SMALL_AREA_MAX){
+                parts.add("소형");
+            }
+            else if(h.getArea()<=MEDIUM_AREA_MAX){
+                parts.add("중형");
+            }
+            else{
+                parts.add("대형");
+            }
+        }
+
+        //방 수
+        if(h.getRoomNumber()!=null){
+            parts.add("방 %d개".formatted(h.getRoomNumber()));
+            switch (h.getRoomNumber()) {
+                case 1 -> parts.add("원룸");
+                case 2 -> parts.add("투룸");
+                case 3 -> parts.add("쓰리룸");
+                default -> parts.add("방 많은 넓은 집");
+            }
+        }
+
+        //욕실
+        if (h.getToilet() != null){
+            parts.add("욕실 %d개".formatted(h.getToilet()));
+        }
+
+        //층, 반지하 여부, 저층/고층
+        if (h.getFloor() != null){
+            if(h.getFloor()<=0){
+                parts.add("반지하");
+            }
+            else{
+                parts.add("%d층 지상층".formatted(h.getFloor()));
+                parts.add(h.getFloor() <= LOW_FLOOR_MAX ? "저층" : "고층");
+            }
+        }
+
+        //방향
+        if(h.getDirection()!=null){
+            parts.add(dir(h.getDirection())+"향");
+        }
+
+        //신축/구축
+        if(b.getConstructionYear()!=null){
+            int age = LocalDate.now().getYear() - b.getConstructionYear();
+            if (age <= NEW_BUILDING_YEARS){
+                parts.add("신축 %d년 준공".formatted(b.getConstructionYear()));
+            }
+            else if(age>=OLD_BUILDING_YEARS){
+                parts.add("구축 %d년 준공".formatted(b.getConstructionYear()));
+            }
+        }
+
+        //용도
+        if (b.getBuildingUsage() != null){
+            parts.add(b.getBuildingUsage());
+        }
+        //행정동
+        if (b.getEmdName() != null){
+            parts.add(b.getEmdName());
+        }
+        //자치구
+        if (b.getSggName() != null){
+            parts.add(b.getSggName());
+            parts.add(b.getSggName().replace("구",""));
+        }
+
+        //캠퍼스 인접
+        if (nearby.nearestCampusName() != null) {
+            parts.add("%s 도보 %d분".formatted(nearby.nearestCampusName(), nearby.nearestCampusMinutes()));
+            parts.add("학교 캠퍼스 인접");
+        }
+
+        //cctv
+        if (nearby.cctvCount() != null && nearby.cctvCount() > 0) {
+            parts.add("주변 CCTV %d대".formatted(nearby.cctvCount()));
+        }
+
+        return String.join(", ", parts);
+    }
+
+    private long manwon(Long won){
+        return won==null ? 0: won/10_000;
+    }
+
+    private String dir(House.Direction d){
+        return switch (d){
+            case NORTH -> "북";
+            case EAST -> "동";
+            case SOUTH -> "남";
+            case WEST -> "서";
+        };
+    }
+}
+
