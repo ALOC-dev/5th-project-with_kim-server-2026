@@ -25,9 +25,9 @@ public class HouseFeatureTextBuilder {
         //계약유형, 가격
         if (h.getContractType() != null) {
             switch (h.getContractType()) {
-                case MONTHLY -> parts.add("월세 %d만원".formatted(manwon(h.getPrice())));
-                case JEONSE -> parts.add("전세 %d만원".formatted(manwon(h.getPrice())));
-                case SALE -> parts.add("매매 %d만원".formatted(manwon(h.getPrice())));
+                case MONTHLY -> parts.add("월세");
+                case JEONSE -> parts.add("전세");
+                case SALE -> parts.add("매매");
             }
             if (h.getPrice() != null) {
                 long m = manwon(h.getPrice());
@@ -48,17 +48,17 @@ public class HouseFeatureTextBuilder {
             }
         }
 
-        //관리비, 월 총 부담
-        if(h.getManagementFee()!=null){
-            parts.add("관리비 %d만원".formatted(manwon(h.getManagementFee())));
-            if(h.getContractType()==House.ContractType.MONTHLY && h.getPrice()!=null){
-                parts.add("월 총 부담 %d만원".formatted(manwon(h.getPrice()+h.getManagementFee())));
-            }
-        }
+//        //관리비, 월 총 부담
+//        if(h.getManagementFee()!=null){
+//            parts.add("관리비 %d만원".formatted(manwon(h.getManagementFee())));
+//            if(h.getContractType()==House.ContractType.MONTHLY && h.getPrice()!=null){
+//                parts.add("월 총 부담 %d만원".formatted(manwon(h.getPrice()+h.getManagementFee())));
+//            }
+//        }
 
         //면적, 평수 추상 감각
         if(h.getArea()!=null){
-            parts.add("전용면적 %.0f㎡ %d평".formatted(h.getArea(),Math.round(h.getArea()/3.3058)));
+//            parts.add("전용면적 %.0f㎡ %d평".formatted(h.getArea(),Math.round(h.getArea()/3.3058)));
             if(h.getArea()<=SMALL_AREA_MAX){
                 parts.add("소형");
             }
@@ -72,7 +72,7 @@ public class HouseFeatureTextBuilder {
 
         //방 수
         if(h.getRoomNumber()!=null){
-            parts.add("방 %d개".formatted(h.getRoomNumber()));
+//            parts.add("방 %d개".formatted(h.getRoomNumber()));
             switch (h.getRoomNumber()) {
                 case 1 -> parts.add("원룸");
                 case 2 -> parts.add("투룸");
@@ -81,10 +81,10 @@ public class HouseFeatureTextBuilder {
             }
         }
 
-        //욕실
-        if (h.getToilet() != null){
-            parts.add("욕실 %d개".formatted(h.getToilet()));
-        }
+//        //욕실
+//        if (h.getToilet() != null){
+//            parts.add("욕실 %d개".formatted(h.getToilet()));
+//        }
 
         //층, 반지하 여부, 저층/고층
         if (h.getFloor() != null){
@@ -92,7 +92,7 @@ public class HouseFeatureTextBuilder {
                 parts.add("반지하");
             }
             else{
-                parts.add("%d층 지상층".formatted(h.getFloor()));
+//                parts.add("%d층 지상층".formatted(h.getFloor()));
                 parts.add(h.getFloor() <= LOW_FLOOR_MAX ? "저층" : "고층");
             }
         }
@@ -100,16 +100,19 @@ public class HouseFeatureTextBuilder {
         //방향
         if(h.getDirection()!=null){
             parts.add(dir(h.getDirection())+"향");
+            if (h.getDirection() == House.Direction.SOUTH) {
+                parts.add("채광 좋은 햇빛 잘 드는");
+            }
         }
 
         //신축/구축
         if(b.getConstructionYear()!=null){
             int age = LocalDate.now().getYear() - b.getConstructionYear();
             if (age <= NEW_BUILDING_YEARS){
-                parts.add("신축 %d년 준공".formatted(b.getConstructionYear()));
+                parts.add("신축 깨끗한 새 건물");
             }
             else if(age>=OLD_BUILDING_YEARS){
-                parts.add("구축 %d년 준공".formatted(b.getConstructionYear()));
+                parts.add("구축");
             }
         }
 
@@ -133,9 +136,9 @@ public class HouseFeatureTextBuilder {
             parts.add("학교 캠퍼스 인접");
         }
 
-        //cctv
+        //치안, cctv
         if (nearby.cctvCount() != null && nearby.cctvCount() > 0) {
-            parts.add("주변 CCTV %d대".formatted(nearby.cctvCount()));
+            parts.add("CCTV 있는 치안 좋은 안전한");
         }
 
         return String.join(", ", parts);

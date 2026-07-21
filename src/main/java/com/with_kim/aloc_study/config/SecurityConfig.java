@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/login/kakao").permitAll()
                                 .requestMatchers("/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
-                                .requestMatchers("/api/houses/**").permitAll()   // ← 이 줄 추가
+                                .requestMatchers("/api/houses/**").permitAll()
                                 .anyRequest()
 //                        .permitAll()
                                 .authenticated()
