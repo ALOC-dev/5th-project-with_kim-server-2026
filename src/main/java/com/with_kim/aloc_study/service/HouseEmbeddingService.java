@@ -8,6 +8,7 @@ import com.with_kim.aloc_study.util.HouseFeatureTextBuilder;
 import com.with_kim.aloc_study.util.OpenAiEmbeddingClient;
 import com.with_kim.aloc_study.util.VectorUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +29,7 @@ public class HouseEmbeddingService {
     //전체 매물의 feature_embedding을 생성
     @Transactional
     public int rebuildAll(){
-        List<House> houses=houseRepository.findAllWithBuilding();
+        List<House> houses=houseRepository.findAllWithBuildingForBatch();
         int updated=0;
 
         for(int i=0;i<houses.size();i+=BATCH_SIZE){
