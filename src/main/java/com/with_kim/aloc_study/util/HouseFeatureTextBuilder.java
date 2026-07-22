@@ -127,12 +127,14 @@ public class HouseFeatureTextBuilder {
         //자치구
         if (b.getSggName() != null){
             parts.add(b.getSggName());
-            parts.add(b.getSggName().replace("구",""));
+            if(b.getSggName().endsWith("구")){
+                parts.add(b.getSggName().substring(0,b.getSggName().length()-1));
+            }
         }
 
         //캠퍼스 인접
         if (nearby.nearestCampusName() != null) {
-            parts.add("%s 도보 %d분".formatted(nearby.nearestCampusName(), nearby.nearestCampusMinutes()));
+//            parts.add("%s 도보 %d분".formatted(nearby.nearestCampusName(), nearby.nearestCampusMinutes()));
             parts.add("학교 캠퍼스 인접");
         }
 

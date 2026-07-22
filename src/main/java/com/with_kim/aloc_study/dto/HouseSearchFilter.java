@@ -14,11 +14,13 @@ public record HouseSearchFilter(
         House.Direction direction,
         String sggName,
         String emdName,
+        Integer campusMaxMinutes,
+        Integer campusMaxMeters,
         String semanticQuery//필터로 커버가 불가능한 것->임베딩으로
 ) {
     //파싱이 실패할 경우 필터 없이 전부 임베딩으로 진행
     public static HouseSearchFilter fallback(String originalQuery){
         return new HouseSearchFilter(null, null, null, null, null, null,
-                null, null, null, null, null, originalQuery);
+                null, null, null, null, null,null, null, originalQuery);
     }
 }
