@@ -3,6 +3,7 @@ package com.with_kim.aloc_study.service;
 import com.with_kim.aloc_study.dto.HouseSearchFilter;
 import com.with_kim.aloc_study.dto.response.HouseSearchResponse;
 import com.with_kim.aloc_study.repository.HouseEmbeddingRepository;
+import com.with_kim.aloc_study.repository.NearbyInfoRepository;
 import com.with_kim.aloc_study.util.OpenAiEmbeddingClient;
 import com.with_kim.aloc_study.util.QueryParserClient;
 import com.with_kim.aloc_study.util.VectorUtils;
@@ -22,6 +23,7 @@ public class HouseVectorSearchService {
     private final OpenAiEmbeddingClient embeddingClient;
     private final HouseEmbeddingRepository houseEmbeddingRepository;
     private final QueryParserClient queryParserClient;
+    private final NearbyInfoRepository nearbyInfoRepository;
 
     @Transactional(readOnly = true)
     public List<HouseSearchResponse> search(String query,Integer topK){
@@ -42,7 +44,7 @@ public class HouseVectorSearchService {
         return houseEmbeddingRepository
                 .searchByVector(VectorUtils.toVectorLiteral(queryVector),filter,k)
                 .stream()
-                .map(HouseSearchResponse::from)
+                .map(h -> HouseSearchResponse.from(h, nearbyInfoRepository.findFor(h.getBuilding())))
                 .toList();
 
     }

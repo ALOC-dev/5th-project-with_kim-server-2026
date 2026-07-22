@@ -1,14 +1,16 @@
 package com.with_kim.aloc_study.dto.response;
 
+import com.with_kim.aloc_study.dto.NearbyInfo;
 import com.with_kim.aloc_study.entity.Building;
 import com.with_kim.aloc_study.entity.House;
 
 public record HouseSearchResponse(
         Long id, String contractType, Long price,Long managementFee,
         Integer roomNumber, Integer floor, Double area, String direction,
-        String address,Double latitude, Double longitude, String description
+        String address,Double latitude, Double longitude, Integer constructionYear,Integer campusDistanceMeters,
+        Integer campusWalkMinutes, String description
 ) {
-    public static HouseSearchResponse from(House h){
+    public static HouseSearchResponse from(House h, NearbyInfo nearby){
         Building b=h.getBuilding();
         return new HouseSearchResponse(
                 h.getId(),
@@ -22,6 +24,9 @@ public record HouseSearchResponse(
                 b.getAddress(),
                 b.getLatitude(),
                 b.getLongitude(),
+                b.getConstructionYear(),
+                nearby != null ? nearby.nearestCampusMeters() : null,
+                nearby != null ? nearby.nearestCampusMinutes() : null,
                 h.getDescription()
         );
     }
