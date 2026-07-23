@@ -85,6 +85,28 @@ public class HouseEmbeddingRepository {
             params.put("emd", f.emdName());
         }
 
+        Double campusDist = null;
+        if (f.campusMaxMeters() != null) {
+            campusDist = f.campusMaxMeters().doubleValue();
+        } else if (f.campusMaxMinutes() != null) {
+            campusDist = f.campusMaxMinutes() * 70.0;
+        }
+        if(campusDist!=null){
+            sql.append("""
+             AND EXISTS (
+                SELECT 1 FROM school_buildings s
+                WHERE s.location IS NOT NULL
+                  AND b.location IS NOT NULL
+                  AND ST_DWithin(
+                        b.location::geography,
+                        s.location::geography,
+                        :campusDist
+                      )
+            )
+            """);
+            params.put("campusDist", campusDist);
+        }
+
         sql.append(" ORDER BY h.feature_embedding <=> CAST(:v AS vector) LIMIT :k");
 
         Query q=em.createNativeQuery(sql.toString(),House.class)

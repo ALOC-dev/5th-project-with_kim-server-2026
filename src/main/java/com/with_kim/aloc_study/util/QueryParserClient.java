@@ -1,5 +1,6 @@
 package com.with_kim.aloc_study.util;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.with_kim.aloc_study.dto.HouseSearchFilter;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +16,8 @@ import java.util.Map;
 @Component
 public class QueryParserClient {
     private final RestClient restClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private final String model;
 
     public QueryParserClient(@Qualifier("openAiRestClient") RestClient restClient,
@@ -42,6 +44,7 @@ public class QueryParserClient {
               "direction": "SOUTH" | "NORTH" | "EAST" | "WEST" | null,
               "sggName": "XX구" | null,
               "emdName": "XX동" | null,
+              "campusMaxMinutes": 정수(분) | null,
               "semanticQuery": "필터로 표현하지 못한 나머지 의미"
             }
 
@@ -60,17 +63,22 @@ public class QueryParserClient {
             - "10평 이상" → areaMin: 33 (1평 = 3.3058㎡)
             - "남향" → direction: "SOUTH"
             - 언급되지 않은 필드는 null
+            - 캠퍼스 인접: "시립대/서울시립대/학교/캠퍼스 + 도보 N분/근처/앞/인접" 표현이 있으면
+              campusMaxMinutes에 명시된 분을 넣는다. 시간 언급 없이 "근처/앞"이면 20.
+              "시립대 도보 10분 이내" → campusMaxMinutes: 10
+              "학교 근처" → campusMaxMinutes: 20
+            - semanticQuery에는 캠퍼스 거리 조건을 넣지 않는다 (이미 필터로 추출했으므로).
             - semanticQuery에는 신축/채광/조용한/캠퍼스 근처/치안 같은
               분위기·취향 표현만 남기고, 이미 필터로 추출한 조건은 넣지 않는다.
               아무것도 없으면 빈 문자열.
 
             예시:
-            입력: "마포구 월세 60 이하 투룸, 반지하 말고 채광 좋은 곳"
-            출력: {"contractType":"MONTHLY","priceMin":null,"priceMax":600000,
-                   "roomNumber":2,"excludeBanjiha":true,"floorMin":null,
+            입력: "시립대 도보 10분 안에 월세 50 이하 원룸, 곰팡이 없고 밝은 곳"
+            출력: {"contractType":"MONTHLY","priceMin":null,"priceMax":500000,
+                   "roomNumber":1,"excludeBanjiha":true,"floorMin":null,
                    "areaMin":null,"areaMax":null,"direction":null,
-                   "sggName":"마포구","emdName":null,
-                   "semanticQuery":"채광 좋은 집"}
+                   "sggName":null,"emdName":null,"campusMaxMinutes":10,
+                   "semanticQuery":"곰팡이 없는 밝은 채광 좋은 집"}
             """;
 
     public HouseSearchFilter parse(String userQuery) {

@@ -78,4 +78,4 @@ application-local.properties
 application-secret.yml
 # 프로젝트 내에서 업로드된 부동산 매물 이미지 및 파일 저장소
 /uploads/
-/storage/
+/storage/certbot/
