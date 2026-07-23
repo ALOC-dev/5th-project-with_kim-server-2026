@@ -61,7 +61,7 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
-	// QueryDsl 설정
+    // QueryDsl 설정
 	implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
 	implementation "com.querydsl:querydsl-codegen:5.1.0" // QueryDSL 코드 생성
 	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
