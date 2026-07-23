@@ -34,9 +34,6 @@ public class AnalysisMortgage {
 
     private Long amount;
 
-    @Column(length = 20)
-    private String status;
-
     @Column(name = "joint_collateral")
     private Boolean jointCollateral;
 
@@ -45,14 +42,12 @@ public class AnalysisMortgage {
             Integer rank,
             String raw,
             Long amount,
-            String status,
             Boolean jointCollateral
     ) {
         this.analysisResult = analysisResult;
         this.rank = rank;
         this.raw = raw;
         this.amount = amount;
-        this.status = status;
         this.jointCollateral = jointCollateral;
     }
 }

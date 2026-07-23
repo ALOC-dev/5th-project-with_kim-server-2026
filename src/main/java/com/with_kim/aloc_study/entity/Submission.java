@@ -1,16 +1,20 @@
 package com.with_kim.aloc_study.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.time.LocalDateTime;
 
 /**
@@ -46,6 +50,13 @@ public class Submission {
     @Column(name = "public_price")
     private Long publicPrice;
 
+    @Column(name = "senior_tenant_deposits")
+    private Long seniorTenantDeposits;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "property_type", length = 30)
+    private PropertyType propertyType;
+
     // 임대 유형. 현재는 JEONSE(전세)만 분석 지원 — WOLSE(월세)는 접수 자체를 거부하므로
     // DB에는 사실상 JEONSE만 저장되지만, 향후 월세 지원 시를 대비해 컬럼은 만들어둔다.
     @Enumerated(EnumType.STRING)
@@ -57,6 +68,9 @@ public class Submission {
 
     @Column(name = "s3_key", nullable = false)
     private String s3Key;
+
+    @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<SubmissionDocument> documents = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -78,15 +92,18 @@ public class Submission {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    public Submission(String submissionId, String owner, String tenantName,Long deposit, Long price,
-                      Long publicPrice, LeaseType leaseType, String s3Bucket, String s3Key) {
+    public Submission(String submissionId, String owner, String tenantName, Long deposit, Long price,
+                      Long publicPrice, Long seniorTenantDeposits, LeaseType leaseType,
+                      PropertyType propertyType, String s3Bucket, String s3Key) {
         this.submissionId = submissionId;
         this.owner = owner;
         this.tenantName = tenantName;
         this.deposit = deposit;
         this.price = price;
         this.publicPrice = publicPrice;
+        this.seniorTenantDeposits = seniorTenantDeposits;
         this.leaseType = leaseType;
+        this.propertyType = propertyType;
         this.s3Bucket = s3Bucket;
         this.s3Key = s3Key;
         this.status = SubmissionStatus.PENDING;
@@ -99,6 +116,16 @@ public class Submission {
         WOLSE    // 월세 — 접수 시 400으로 거부 (향후 지원 예정)
     }
 
+    public enum PropertyType {
+        APARTMENT,
+        ROW_HOUSE,
+        MULTI_FAMILY,
+        OFFICETEL,
+        SINGLE_FAMILY,
+        MULTI_HOUSEHOLD,
+        COLLECTIVE
+    }
+
     /**
      * 상태 전이. PENDING(DB 저장 직후) -> QUEUED(SQS 발행 성공)
      * -> ANALYZED(Lambda 결과 수신) -> FAILED(재시도 소진/DLQ)
@@ -108,18 +135,30 @@ public class Submission {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void addDocument(SubmissionDocument document) {
+        if (this.documents.isEmpty()) {
+            this.s3Bucket = document.getS3Bucket();
+            this.s3Key = document.getS3Key();
+        }
+        this.documents.add(document);
+        this.updatedAt = LocalDateTime.now();
+    }
+
     /** Lambda로부터 받은 분석 요약을 반영하고 상태를 ANALYZED로 전이한다. */
-    public void applyAnalysisSummary(String riskLevel, Double riskScore) {
+    public void applyAnalysisSummary(String analysisStatus, String riskLevel, Double riskScore) {
         this.riskLevel = riskLevel;
         this.riskScore = riskScore;
         this.analyzedAt = LocalDateTime.now();
-        updateStatus(SubmissionStatus.ANALYZED);
+        updateStatus("NEEDS_MORE_DOCS".equals(analysisStatus)
+                ? SubmissionStatus.NEEDS_MORE_DOCS
+                : SubmissionStatus.ANALYZED);
     }
 
     public enum SubmissionStatus {
         PENDING,
         QUEUED,
         ANALYZED,
+        NEEDS_MORE_DOCS,
         FAILED
     }
 }

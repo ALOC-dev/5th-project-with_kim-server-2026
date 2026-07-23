@@ -41,6 +41,8 @@ public class AnalysisRegistryHit {
     @Column(columnDefinition = "TEXT")
     private String line;
 
+    private Long amount;
+
     private Boolean cancelled;
 
     public AnalysisRegistryHit(
@@ -49,6 +51,7 @@ public class AnalysisRegistryHit {
             String keyword,
             Integer rank,
             String line,
+            Long amount,
             Boolean cancelled
     ) {
         this.analysisResult = analysisResult;
@@ -56,11 +59,14 @@ public class AnalysisRegistryHit {
         this.keyword = keyword;
         this.rank = rank;
         this.line = line;
+        this.amount = amount;
         this.cancelled = cancelled;
     }
 
     public enum HitType {
         ENCUMBRANCE,
-        TRUST
+        TRUST,
+        LAND_RIGHT,
+        TENANT_RIGHT
     }
 }

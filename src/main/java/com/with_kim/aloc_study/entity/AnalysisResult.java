@@ -35,17 +35,38 @@ public class AnalysisResult {
     @Column(name = "current_owner")
     private String currentOwner;
 
+    @Column(name = "analysis_status", nullable = false, length = 30)
+    private String analysisStatus = "COMPLETE";
+
+    @Column(name = "required_documents", columnDefinition = "TEXT")
+    private String requiredDocuments;
+
+    @Column(name = "required_documents_reason", columnDefinition = "TEXT")
+    private String requiredDocumentsReason;
+
+    @Column(name = "property_type", length = 30)
+    private String propertyType;
+
     @Column(name = "owner_names", columnDefinition = "TEXT")
     private String ownerNames;
 
     @Column(name = "owner_matches_contract")
     private Boolean ownerMatchesContract;
 
+    @Column(name = "building_land_owner_match")
+    private Boolean buildingLandOwnerMatch;
+
     @Column(name = "trust_found")
     private Boolean trustFound;
 
     @Column(name = "mortgage_total")
     private Long mortgageTotal;
+
+    @Column(name = "senior_tenant_deposits_used")
+    private Long seniorTenantDepositsUsed;
+
+    @Column(name = "registered_tenant_deposit_total")
+    private Long registeredTenantDepositTotal;
 
     @Column(name = "risk_ratio")
     private Double riskRatio;
@@ -78,6 +99,9 @@ public class AnalysisResult {
     private List<AnalysisMortgage> mortgageItems = new ArrayList<>();
 
     @OneToMany(mappedBy = "analysisResult", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AnalysisDocument> documents = new ArrayList<>();
+
+    @OneToMany(mappedBy = "analysisResult", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnalysisMessage> messages = new ArrayList<>();
 
     @OneToMany(mappedBy = "analysisResult", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -96,11 +120,18 @@ public class AnalysisResult {
     }
 
     public void replaceSummary(
+            String analysisStatus,
+            String requiredDocuments,
+            String requiredDocumentsReason,
+            String propertyType,
             String currentOwner,
             String ownerNames,
             Boolean ownerMatchesContract,
+            Boolean buildingLandOwnerMatch,
             Boolean trustFound,
             Long mortgageTotal,
+            Long seniorTenantDepositsUsed,
+            Long registeredTenantDepositTotal,
             Double riskRatio,
             Double riskScore,
             String riskLevel,
@@ -111,11 +142,18 @@ public class AnalysisResult {
             String rawResultS3Bucket,
             String rawResultS3Key
     ) {
+        this.analysisStatus = analysisStatus == null ? "COMPLETE" : analysisStatus;
+        this.requiredDocuments = requiredDocuments;
+        this.requiredDocumentsReason = requiredDocumentsReason;
+        this.propertyType = propertyType;
         this.currentOwner = currentOwner;
         this.ownerNames = ownerNames;
         this.ownerMatchesContract = ownerMatchesContract;
+        this.buildingLandOwnerMatch = buildingLandOwnerMatch;
         this.trustFound = trustFound;
         this.mortgageTotal = mortgageTotal;
+        this.seniorTenantDepositsUsed = seniorTenantDepositsUsed;
+        this.registeredTenantDepositTotal = registeredTenantDepositTotal;
         this.riskRatio = riskRatio;
         this.riskScore = riskScore;
         this.riskLevel = riskLevel;
@@ -129,13 +167,37 @@ public class AnalysisResult {
     }
 
     public void clearDetails() {
+        documents.clear();
         mortgageItems.clear();
         messages.clear();
         registryHits.clear();
     }
 
-    public void addMortgageItem(Integer rank, String raw, Long amount, String status, Boolean jointCollateral) {
-        mortgageItems.add(new AnalysisMortgage(this, rank, raw, amount, status, jointCollateral));
+    public void addDocument(
+            String docType,
+            String inferredPropertyType,
+            String currentOwner,
+            Integer activeMortgageCount,
+            Integer activeEncumbranceCount,
+            Boolean hasSeparateLandRegistry,
+            Boolean hasDaejigwon,
+            String notes
+    ) {
+        documents.add(new AnalysisDocument(
+                this,
+                docType,
+                inferredPropertyType,
+                currentOwner,
+                activeMortgageCount,
+                activeEncumbranceCount,
+                hasSeparateLandRegistry,
+                hasDaejigwon,
+                notes
+        ));
+    }
+
+    public void addMortgageItem(Integer rank, String raw, Long amount, Boolean jointCollateral) {
+        mortgageItems.add(new AnalysisMortgage(this, rank, raw, amount, jointCollateral));
     }
 
     public void addMessage(AnalysisMessage.MessageType type, String content, int displayOrder) {
@@ -147,8 +209,9 @@ public class AnalysisResult {
             String keyword,
             Integer rank,
             String line,
+            Long amount,
             Boolean cancelled
     ) {
-        registryHits.add(new AnalysisRegistryHit(this, type, keyword, rank, line, cancelled));
+        registryHits.add(new AnalysisRegistryHit(this, type, keyword, rank, line, amount, cancelled));
     }
 }

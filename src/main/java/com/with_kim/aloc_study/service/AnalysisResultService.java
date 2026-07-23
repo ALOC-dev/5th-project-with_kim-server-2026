@@ -47,16 +47,24 @@ public class AnalysisResultService {
 
         String riskLevel = textOrNull(analysis, "risk_level");
         Double riskScore = doubleOrNull(analysis, "risk_score");
+        String analysisStatus = textOrNull(analysis, "analysis_status");
 
         AnalysisResult result = analysisResultRepository.findBySubmission_SubmissionId(submissionId)
                 .orElseGet(() -> new AnalysisResult(submission));
 
         result.replaceSummary(
+                analysisStatus,
+                joinTextArray(analysis.path("required_documents")),
+                textOrNull(analysis, "required_documents_reason"),
+                textOrNull(analysis, "property_type"),
                 textOrNull(analysis, "current_owner"),
                 joinTextArray(analysis.path("owner_names")),
                 booleanOrNull(analysis, "owner_matches_contract"),
+                booleanOrNull(analysis, "building_land_owner_match"),
                 booleanOrNull(analysis, "trust_found"),
                 longOrNull(analysis, "mortgage_total"),
+                longOrNull(analysis, "senior_tenant_deposits_used"),
+                longOrNull(analysis, "registered_tenant_deposit_total"),
                 doubleOrNull(analysis, "risk_ratio"),
                 riskScore,
                 riskLevel,
@@ -69,6 +77,7 @@ public class AnalysisResultService {
         );
         result.clearDetails();
 
+        addDocuments(result, analysis.path("documents"));
         addMortgageItems(result, analysis.path("mortgage_items"));
         addMessages(result, AnalysisMessage.MessageType.FLAG, analysis.path("flags"));
         addMessages(result, AnalysisMessage.MessageType.NOTE, analysis.path("notes"));
@@ -76,13 +85,34 @@ public class AnalysisResultService {
         addMessages(result, AnalysisMessage.MessageType.LH_REASON, analysis.path("lh_reasons"));
         addRegistryHits(result, AnalysisRegistryHit.HitType.ENCUMBRANCE, analysis.path("encumbrance_hits"));
         addRegistryHits(result, AnalysisRegistryHit.HitType.TRUST, analysis.path("trust_hits"));
+        addRegistryHits(result, AnalysisRegistryHit.HitType.LAND_RIGHT, analysis.path("land_right_hits"));
+        addRegistryHits(result, AnalysisRegistryHit.HitType.TENANT_RIGHT, analysis.path("tenant_right_hits"));
 
         analysisResultRepository.save(result);
-        submission.applyAnalysisSummary(riskLevel, riskScore);
+        submission.applyAnalysisSummary(analysisStatus, riskLevel, riskScore);
 
-        log.info("분석 결과 반영 완료: submissionId={}, riskLevel={}, riskScore={}, mortgages={}, messages={}",
-                submissionId, riskLevel, riskScore, result.getMortgageItems().size(), result.getMessages().size());
+        log.info("분석 결과 반영 완료: submissionId={}, analysisStatus={}, riskLevel={}, riskScore={}, mortgages={}, messages={}",
+                submissionId, analysisStatus, riskLevel, riskScore,
+                result.getMortgageItems().size(), result.getMessages().size());
         // JPA dirty checking으로 트랜잭션 커밋 시점에 UPDATE 쿼리 발생 — save() 재호출 불필요
+    }
+
+    private void addDocuments(AnalysisResult result, JsonNode documents) {
+        if (!documents.isArray()) {
+            return;
+        }
+        for (JsonNode document : documents) {
+            result.addDocument(
+                    textOrNull(document, "doc_type"),
+                    textOrNull(document, "inferred_property_type"),
+                    textOrNull(document, "current_owner"),
+                    intOrNull(document, "active_mortgage_count"),
+                    intOrNull(document, "active_encumbrance_count"),
+                    booleanOrNull(document, "has_separate_land_registry"),
+                    booleanOrNull(document, "has_daejigwon"),
+                    joinTextArray(document.path("notes"))
+            );
+        }
     }
 
     private void addMortgageItems(AnalysisResult result, JsonNode mortgageItems) {
@@ -94,7 +124,6 @@ public class AnalysisResultService {
                     intOrNull(item, "rank"),
                     textOrNull(item, "raw"),
                     longOrNull(item, "amount"),
-                    textOrNull(item, "status"),
                     booleanOrNull(item, "joint_collateral")
             );
         }
@@ -122,6 +151,7 @@ public class AnalysisResultService {
                     textOrNull(hit, "keyword"),
                     intOrNull(hit, "rank"),
                     textOrNull(hit, "line"),
+                    longOrNull(hit, "amount"),
                     booleanOrNull(hit, "cancelled")
             );
         }
