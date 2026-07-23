@@ -47,9 +47,9 @@ public record HouseResponse(
                 house.getRoomNumber(),
                 house.getToilet(),
                 house.getManagementFee(),
-                house.getContractType().name(),
+                house.getContractType() == null ? null : house.getContractType().name(),
                 house.getFloor(),
-                house.getDirection().name(),
+                house.getDirection() == null ? null : house.getDirection().name(),
                 house.getDescription(),
                 metadata,
                 house.getImageUrls()

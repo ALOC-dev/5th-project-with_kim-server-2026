@@ -17,11 +17,11 @@ public class GlobalExceptionHandler {
     // 걍 일반적인 예외
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ResultDto> handleAllExceptions(Exception e) {
-        logger.error("An unexpected error occured : {}", e.getMessage());
+        logger.error("An unexpected error occurred", e);
 
         ResultDto resultDto = ResultDto.builder()
                 .success(false)
-                .message("Unexpected Error : " + e.getMessage())
+                .message("Unexpected Error : " + (e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage()))
                 .code(HttpStatus.BAD_REQUEST.value())
                 .build();
 

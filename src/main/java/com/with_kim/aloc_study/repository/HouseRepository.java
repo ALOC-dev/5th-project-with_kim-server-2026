@@ -16,6 +16,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface HouseRepository extends JpaRepository<House, Long> {
+    boolean existsBySourceKey(String sourceKey);
+
     //모든 매물 찾기
     @Query(value = "SELECT h FROM House h JOIN FETCH h.building",
             countQuery = "SELECT COUNT(h) FROM House h")
@@ -169,9 +171,6 @@ public interface HouseRepository extends JpaRepository<House, Long> {
                         @Param("metadata") String metadata,
                         @Param("updatedAt") LocalDateTime updatedAt);
 }
-
-
-
 
 
 

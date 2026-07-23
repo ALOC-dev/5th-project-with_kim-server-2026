@@ -9,6 +9,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +24,8 @@ public class KakaoApiClient {
 
     private static final String KAKAO_CATEGORY_URL =
             "https://dapi.kakao.com/v2/local/search/category.json";
+    private static final String KAKAO_ADDRESS_URL =
+            "https://dapi.kakao.com/v2/local/search/address.json";
 
     public int countByCategory(Double lat, Double lng, String categoryCode, int radiusMeters) {
         String url = KAKAO_CATEGORY_URL
@@ -61,6 +66,33 @@ public class KakaoApiClient {
                     HttpStatus.SERVICE_UNAVAILABLE,
                     "카카오 API 통신 실패"
             );
+        }
+    }
+
+    public Optional<KakaoAddressApiResponse.Document> findAddress(String query) {
+        String url = UriComponentsBuilder.fromUriString(KAKAO_ADDRESS_URL)
+                .queryParam("query", query)
+                .build()
+                .encode()
+                .toUriString();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "KakaoAK " + apiKey);
+
+        try {
+            ResponseEntity<KakaoAddressApiResponse> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    new HttpEntity<>(headers),
+                    KakaoAddressApiResponse.class
+            );
+
+            KakaoAddressApiResponse body = response.getBody();
+            return body == null || !body.hasDocument()
+                    ? Optional.empty()
+                    : Optional.of(body.firstDocument());
+        } catch (RestClientException e) {
+            return Optional.empty();
         }
     }
 } //uricomponentbuilder, webclient >> 최신 기법, 학습 필요

@@ -32,7 +32,7 @@ public class House{
     private Long managementFee; //관리비
 
     private Double area;
-    private Integer roomNumber; //방 수
+    private Integer roomNumber; // 방 수
     private Integer toilet; //욕실 수
 
 
@@ -47,6 +47,9 @@ public class House{
     @Enumerated(EnumType.STRING)
     private Direction direction;
     private Integer floor;
+
+    @Column(name = "source_key", unique = true)
+    private String sourceKey;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
@@ -84,6 +87,34 @@ public class House{
         EAST,
         SOUTH,
         WEST
+    }
+
+    public static House fromSeoulRtms(Building building,
+                                      Long price,
+                                      Double area,
+                                      Integer floor,
+                                      String sourceKey,
+                                      String description,
+                                      String metadata) {
+        House house = new House();
+        house.building = building;
+        house.price = price;
+        house.area = area;
+        house.roomNumber = 1;
+        house.toilet = 1;
+        house.managementFee = 0L;
+        house.floor = floor;
+        house.bldg = 0;
+        house.unit = 0;
+        house.number = sourceKey == null ? null : Integer.toUnsignedLong(sourceKey.hashCode());
+        house.contractType = ContractType.SALE;
+        house.direction = Direction.SOUTH;
+        house.sourceKey = sourceKey;
+        house.description = description;
+        house.metadata = metadata;
+        house.metadataUpdatedAt = LocalDateTime.now();
+
+        return house;
     }
 
     public Double getLatitude() {
