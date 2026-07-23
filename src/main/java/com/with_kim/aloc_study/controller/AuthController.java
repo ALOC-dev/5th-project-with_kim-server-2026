@@ -45,7 +45,15 @@ public class AuthController {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
 
-        Users user = userService.create(request.getLoginId(), request.getPassword(), request.getUsername());
+        Users user = userService.create(
+                request.getLoginId(),
+                request.getPassword(),
+                request.getUsername(),
+                request.getMainBuildingId(),
+                request.getSubBuildingId(),
+                request.getMaxDeposit(),
+                request.getHousingType()
+        );
 
         SignUpResponse response = new SignUpResponse(user.getId(), user.getLoginId(), user.getUsername());
 
