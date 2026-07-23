@@ -6,7 +6,6 @@ import com.with_kim.aloc_study.entity.WishList;
 public record WishListResponse(
         Long wishListId,
         Long houseId,
-        Long buildingId,
         String address,
         Long price,
         Double area) {
@@ -18,7 +17,6 @@ public record WishListResponse(
         return new WishListResponse(
                 wishList.getId(),
                 house.getId(),
-                house.getBuilding().getId(),
                 house.getBuilding().getAddress(),
                 house.getPrice(),
                 house.getArea()

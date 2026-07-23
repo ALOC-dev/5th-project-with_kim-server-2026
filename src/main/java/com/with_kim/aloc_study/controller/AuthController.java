@@ -55,7 +55,7 @@ public class AuthController {
     @Operation(summary = "로그인", description = "로그인 ID와 비밀번호로 로그인하고 JWT 토큰을 발급받습니다.")
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
-        LoginResponse response = userService.login(request);
+        LoginResponse response = authService.login(request);
 
         return ResponseEntity.ok(response);
     }
@@ -86,6 +86,6 @@ public class AuthController {
     @Operation(summary = "accessToken 갱신", description = "refreshToken을 사용하여 새로운 accessToken을 발급받습니다.")
     @PostMapping("/reissue")
     public TokenResponse reissue(@RequestBody ReissueRequest request) {
-        return userService.reissue(request.refreshToken());
+        return authService.reissue(request.refreshToken());
     }
 }

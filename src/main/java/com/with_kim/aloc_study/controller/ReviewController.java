@@ -2,11 +2,14 @@ package com.with_kim.aloc_study.controller;
 
 import com.with_kim.aloc_study.dto.request.ReviewRequest;
 import com.with_kim.aloc_study.dto.response.ReviewResponse;
-import com.with_kim.aloc_study.entity.Review;
 import com.with_kim.aloc_study.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -72,10 +75,17 @@ public class ReviewController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "리뷰 전체 조회", description = "등록된 전체 리뷰 목록을 조회합니다.")
+    @Operation(summary = "리뷰 전체 조회", description = "등록된 전체 리뷰 목록을 최신순으로 조회합니다.")
     @GetMapping("/reviews")
-    public ResponseEntity<List<ReviewResponse>> getAllReviews() {
-        List<ReviewResponse> responses = reviewService.getAllReviews();
+    public ResponseEntity<Page<ReviewResponse>> getAllReviews(
+            @Parameter(description = "조회할 페이지 번호(0부터 시작)")
+            @RequestParam int page,
+            @Parameter(description = "한 페이지에 가져올 리뷰 개수")
+            @RequestParam int size
+    ) {
+        Page<ReviewResponse> responses = reviewService.getAllReviews(
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
+        );
 
         return ResponseEntity.ok(responses);
     }

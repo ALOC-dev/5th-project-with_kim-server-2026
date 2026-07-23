@@ -7,7 +7,13 @@ import lombok.Setter;
 @Setter
 public class ReviewRequest {
 
-    private int rating;
+    private int cleanlinessRating;
+
+    private int managementRating;
+
+    private int locationRating;
+
+    private int priceRating;
 
     private String text;
 
