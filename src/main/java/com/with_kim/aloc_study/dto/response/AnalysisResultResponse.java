@@ -15,6 +15,9 @@ public record AnalysisResultResponse(
         String requiredDocumentsReason,
         String propertyType,
         List<DocumentResponse> documents,
+        String registryAddress,
+        Boolean addressMatchesSubmission,
+        String addressMatchBasis,
         String currentOwner,
         String ownerNames,
         Boolean ownerMatchesContract,
@@ -52,6 +55,9 @@ public record AnalysisResultResponse(
                 result.getDocuments().stream()
                         .map(DocumentResponse::from)
                         .toList(),
+                result.getRegistryAddress(),
+                result.getAddressMatchesSubmission(),
+                result.getAddressMatchBasis(),
                 result.getCurrentOwner(),
                 result.getOwnerNames(),
                 result.getOwnerMatchesContract(),

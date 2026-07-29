@@ -8,6 +8,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -42,6 +45,17 @@ public class Submission {
 
     @Column(name = "tenant_name", nullable = false)
     private String tenantName;  // 임차인 이름 (분석 로직에는 사용되지 않는 메타데이터)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "house_id")
+    private House house;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private Users user;
+
+    @Column(length = 500)
+    private String address;
 
     private Long deposit;
 
@@ -92,12 +106,15 @@ public class Submission {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    public Submission(String submissionId, String owner, String tenantName, Long deposit, Long price,
+    public Submission(String submissionId, Users user, House house, String owner, String tenantName, String address, Long deposit, Long price,
                       Long publicPrice, Long seniorTenantDeposits, LeaseType leaseType,
                       PropertyType propertyType, String s3Bucket, String s3Key) {
         this.submissionId = submissionId;
+        this.user = user;
+        this.house = house;
         this.owner = owner;
         this.tenantName = tenantName;
+        this.address = address;
         this.deposit = deposit;
         this.price = price;
         this.publicPrice = publicPrice;
@@ -109,6 +126,14 @@ public class Submission {
         this.status = SubmissionStatus.PENDING;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = this.createdAt;
+    }
+
+    public Long getHouseId() {
+        return house == null ? null : house.getId();
+    }
+
+    public Long getUserId() {
+        return user == null ? null : user.getId();
     }
 
     public enum LeaseType {

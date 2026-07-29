@@ -1,9 +1,13 @@
 package com.with_kim.aloc_study.service;
 
 import com.with_kim.aloc_study.dto.request.AnalysisRequestMessage;
+import com.with_kim.aloc_study.entity.House;
 import com.with_kim.aloc_study.entity.Submission;
 import com.with_kim.aloc_study.entity.SubmissionDocument;
+import com.with_kim.aloc_study.entity.Users;
+import com.with_kim.aloc_study.repository.HouseRepository;
 import com.with_kim.aloc_study.repository.SubmissionRepository;
+import com.with_kim.aloc_study.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,17 +43,23 @@ public class SubmissionService {
     private static final Logger log = LoggerFactory.getLogger(SubmissionService.class);
 
     private final SubmissionRepository submissionRepository;
+    private final HouseRepository houseRepository;
+    private final UserRepository userRepository;
     private final S3Client s3Client;
     private final SqsPublisherService sqsPublisherService;
     private final String bucket;
 
     public SubmissionService(
             SubmissionRepository submissionRepository,
+            HouseRepository houseRepository,
+            UserRepository userRepository,
             S3Client s3Client,
             SqsPublisherService sqsPublisherService,
             @Value("${aws.s3.bucket}") String bucket
     ) {
         this.submissionRepository = submissionRepository;
+        this.houseRepository = houseRepository;
+        this.userRepository = userRepository;
         this.s3Client = s3Client;
         this.sqsPublisherService = sqsPublisherService;
         this.bucket = bucket;
@@ -59,6 +69,9 @@ public class SubmissionService {
     public String submit(
             String owner,
             String tenantName,
+            String address,
+            Long houseId,
+            Long userId,
             Long deposit,
             Long price,
             Long publicPrice,
@@ -70,6 +83,23 @@ public class SubmissionService {
             MultipartFile landFile,
             List<MultipartFile> landFiles
     ) {
+        if (address == null || address.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "address는 필수입니다.");
+        }
+        if (houseId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "houseId는 필수입니다.");
+        }
+        House house = houseRepository.findByIdWithBuilding(houseId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "house not found: " + houseId));
+        if (userId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId는 필수입니다.");
+        }
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "user not found: " + userId));
+        String roadAddress = roadAddressOf(house);
+
         // 0) 임대 유형 검증 — 현재는 전세만 분석을 지원한다.
         //    월세는 보증금 구조가 달라(보증금+월차임) 기존 전세가율/HUG 판정 로직을
         //    그대로 적용하면 잘못된 결과가 나오므로, 로직이 준비되기 전까지는
@@ -91,7 +121,7 @@ public class SubmissionService {
 
         // 1) DB 저장 — 여기서 실제로 INSERT가 일어난다.
         Submission submission = new Submission(
-                submissionId, owner, tenantName, deposit, price, publicPrice, seniorTenantDeposits,
+                submissionId, user, house, owner, tenantName, address.trim(), deposit, price, publicPrice, seniorTenantDeposits,
                 leaseType, propertyType, bucket, "uploads/" + submissionId + ".pdf");
         submissionRepository.save(submission);
         log.info("DB 저장 완료: submissionId={}", submissionId);
@@ -106,7 +136,8 @@ public class SubmissionService {
                 propertyType == null ? null : propertyType.name(),
                 sources,
                 new AnalysisRequestMessage.ContractContext(
-                        owner, tenantName, deposit, price, publicPrice, seniorTenantDeposits)
+                        owner, tenantName, submission.getAddress(), roadAddress,
+                        deposit, price, publicPrice, seniorTenantDeposits)
         );
         sqsPublisherService.publish(message);
 
@@ -161,6 +192,8 @@ public class SubmissionService {
                 new AnalysisRequestMessage.ContractContext(
                         submission.getOwner(),
                         submission.getTenantName(),
+                        submission.getAddress(),
+                        resolveRoadAddress(submission.getHouseId()),
                         submission.getDeposit(),
                         submission.getPrice(),
                         submission.getPublicPrice(),
@@ -262,6 +295,19 @@ public class SubmissionService {
 
     private boolean hasFile(MultipartFile file) {
         return file != null && !file.isEmpty();
+    }
+
+    private String resolveRoadAddress(Long houseId) {
+        if (houseId == null) {
+            return null;
+        }
+        return houseRepository.findByIdWithBuilding(houseId)
+                .map(this::roadAddressOf)
+                .orElse(null);
+    }
+
+    private String roadAddressOf(House house) {
+        return house.getBuilding() == null ? null : house.getBuilding().getMAddress();
     }
 
     private void uploadToS3(String key, MultipartFile pdfFile) {

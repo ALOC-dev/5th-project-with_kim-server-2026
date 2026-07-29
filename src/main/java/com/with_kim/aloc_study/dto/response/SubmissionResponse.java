@@ -5,6 +5,9 @@ import com.with_kim.aloc_study.entity.Submission;
 
 public record SubmissionResponse(
         String submissionId,
+        Long houseId,
+        Long userId,
+        String address,
         String status,
         String riskLevel,
         Double riskScore,
@@ -13,6 +16,9 @@ public record SubmissionResponse(
     public static SubmissionResponse from(Submission submission, AnalysisResult analysis) {
         return new SubmissionResponse(
                 submission.getSubmissionId(),
+                submission.getHouseId(),
+                submission.getUserId(),
+                submission.getAddress(),
                 submission.getStatus().name(),
                 submission.getRiskLevel(),
                 submission.getRiskScore(),
