@@ -14,6 +14,7 @@ public record AnalysisResultResponse(
         String requiredDocuments,
         String requiredDocumentsReason,
         String propertyType,
+        String leaseType,
         List<DocumentResponse> documents,
         String registryAddress,
         Boolean addressMatchesSubmission,
@@ -24,6 +25,10 @@ public record AnalysisResultResponse(
         Boolean buildingLandOwnerMatch,
         Boolean trustFound,
         Long mortgageTotal,
+        Double jeonseRate,
+        Long recoveryPriceUsed,
+        Long estimatedRecoverableDeposit,
+        Double depositRecoveryRate,
         Long seniorTenantDepositsUsed,
         Long registeredTenantDepositTotal,
         List<MortgageItemResponse> mortgageItems,
@@ -52,6 +57,7 @@ public record AnalysisResultResponse(
                 result.getRequiredDocuments(),
                 result.getRequiredDocumentsReason(),
                 result.getPropertyType(),
+                result.getLeaseType(),
                 result.getDocuments().stream()
                         .map(DocumentResponse::from)
                         .toList(),
@@ -64,6 +70,10 @@ public record AnalysisResultResponse(
                 result.getBuildingLandOwnerMatch(),
                 result.getTrustFound(),
                 result.getMortgageTotal(),
+                result.getJeonseRate(),
+                result.getRecoveryPriceUsed(),
+                result.getEstimatedRecoverableDeposit(),
+                result.getDepositRecoveryRate(),
                 result.getSeniorTenantDepositsUsed(),
                 result.getRegisteredTenantDepositTotal(),
                 result.getMortgageItems().stream()

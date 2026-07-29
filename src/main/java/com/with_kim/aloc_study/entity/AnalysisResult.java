@@ -47,6 +47,9 @@ public class AnalysisResult {
     @Column(name = "property_type", length = 30)
     private String propertyType;
 
+    @Column(name = "lease_type", length = 10)
+    private String leaseType;
+
     @Column(name = "registry_address", length = 500)
     private String registryAddress;
 
@@ -70,6 +73,18 @@ public class AnalysisResult {
 
     @Column(name = "mortgage_total")
     private Long mortgageTotal;
+
+    @Column(name = "jeonse_rate")
+    private Double jeonseRate;
+
+    @Column(name = "recovery_price_used")
+    private Long recoveryPriceUsed;
+
+    @Column(name = "estimated_recoverable_deposit")
+    private Long estimatedRecoverableDeposit;
+
+    @Column(name = "deposit_recovery_rate")
+    private Double depositRecoveryRate;
 
     @Column(name = "senior_tenant_deposits_used")
     private Long seniorTenantDepositsUsed;
@@ -133,6 +148,7 @@ public class AnalysisResult {
             String requiredDocuments,
             String requiredDocumentsReason,
             String propertyType,
+            String leaseType,
             String registryAddress,
             Boolean addressMatchesSubmission,
             String addressMatchBasis,
@@ -142,6 +158,10 @@ public class AnalysisResult {
             Boolean buildingLandOwnerMatch,
             Boolean trustFound,
             Long mortgageTotal,
+            Double jeonseRate,
+            Long recoveryPriceUsed,
+            Long estimatedRecoverableDeposit,
+            Double depositRecoveryRate,
             Long seniorTenantDepositsUsed,
             Long registeredTenantDepositTotal,
             Double riskRatio,
@@ -158,6 +178,7 @@ public class AnalysisResult {
         this.requiredDocuments = requiredDocuments;
         this.requiredDocumentsReason = requiredDocumentsReason;
         this.propertyType = propertyType;
+        this.leaseType = leaseType;
         this.registryAddress = registryAddress;
         this.addressMatchesSubmission = addressMatchesSubmission;
         this.addressMatchBasis = addressMatchBasis;
@@ -167,6 +188,10 @@ public class AnalysisResult {
         this.buildingLandOwnerMatch = buildingLandOwnerMatch;
         this.trustFound = trustFound;
         this.mortgageTotal = mortgageTotal;
+        this.jeonseRate = jeonseRate;
+        this.recoveryPriceUsed = recoveryPriceUsed;
+        this.estimatedRecoverableDeposit = estimatedRecoverableDeposit;
+        this.depositRecoveryRate = depositRecoveryRate;
         this.seniorTenantDepositsUsed = seniorTenantDepositsUsed;
         this.registeredTenantDepositTotal = registeredTenantDepositTotal;
         this.riskRatio = riskRatio;
