@@ -49,10 +49,13 @@ public class NearbyInfoRepository {
         String campusName = null;
         //캠퍼스 건물 거리
         Integer campusMin = null;
+        Integer campusMeters = null;
+
         if(!campusBuilding.isEmpty()){
             campusName=(String) campusBuilding.get( 0)[0];
+            campusMeters=(int)Math. ceil(((Number)campusBuilding.get(0)[1]).doubleValue());
             campusMin=(int)Math. ceil(((Number)campusBuilding.get(0)[1]).doubleValue()/METERS_PER_MINUTE);
         }
-        return new NearbyInfo(campusName, campusMin, cctv.intValue());
+        return new NearbyInfo(campusName, campusMin, campusMeters,cctv.intValue());
     }
 }
