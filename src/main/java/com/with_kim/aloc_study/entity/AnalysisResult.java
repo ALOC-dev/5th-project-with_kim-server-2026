@@ -47,6 +47,15 @@ public class AnalysisResult {
     @Column(name = "property_type", length = 30)
     private String propertyType;
 
+    @Column(name = "registry_address", length = 500)
+    private String registryAddress;
+
+    @Column(name = "address_matches_submission")
+    private Boolean addressMatchesSubmission;
+
+    @Column(name = "address_match_basis", length = 30)
+    private String addressMatchBasis;
+
     @Column(name = "owner_names", columnDefinition = "TEXT")
     private String ownerNames;
 
@@ -124,6 +133,9 @@ public class AnalysisResult {
             String requiredDocuments,
             String requiredDocumentsReason,
             String propertyType,
+            String registryAddress,
+            Boolean addressMatchesSubmission,
+            String addressMatchBasis,
             String currentOwner,
             String ownerNames,
             Boolean ownerMatchesContract,
@@ -146,6 +158,9 @@ public class AnalysisResult {
         this.requiredDocuments = requiredDocuments;
         this.requiredDocumentsReason = requiredDocumentsReason;
         this.propertyType = propertyType;
+        this.registryAddress = registryAddress;
+        this.addressMatchesSubmission = addressMatchesSubmission;
+        this.addressMatchBasis = addressMatchBasis;
         this.currentOwner = currentOwner;
         this.ownerNames = ownerNames;
         this.ownerMatchesContract = ownerMatchesContract;

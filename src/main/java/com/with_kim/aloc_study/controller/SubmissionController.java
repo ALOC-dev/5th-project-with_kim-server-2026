@@ -62,7 +62,8 @@ public class SubmissionController {
             description = "임대인·임차인·보증금과 등기부등본 PDF를 제출합니다. "
                     + "접수 후 SQS/Lambda 비동기 분석이 시작되며, 반환된 submissionId로 결과 조회 API를 호출합니다. "
                     + "집합건물은 file 하나만 제출할 수 있고, 일반 건물은 buildingFile과 landFile(또는 landFiles)을 함께 제출할 수 있습니다. "
-                    + "propertyType을 비워두면 PDF 내용으로 추론합니다."
+                    + "propertyType을 비워두면 PDF 내용으로 추론합니다. address는 등기부 표제부 주소와 대조하며, "
+                    + "houseId의 도로명 주소는 원래 주소가 불일치할 때만 보조 대조에 사용합니다."
     )
     @ApiResponses({
             @ApiResponse(
@@ -83,6 +84,12 @@ public class SubmissionController {
             @RequestParam("owner") String owner,
             @Parameter(description = "계약서상 임차인 이름", example = "김정묵", required = true)
             @RequestParam("tenantName") String tenantName,
+            @Parameter(description = "사용자가 확인한 물건의 원래 주소. 등기부 표제부와 우선 대조합니다.", example = "서울특별시 동대문구 전농동 152-73", required = true)
+            @RequestParam("address") String address,
+            @Parameter(description = "서비스의 매물 ID. 도로명 주소 조회 및 제출 건 연결에 사용합니다.", example = "42", required = true)
+            @RequestParam("houseId") Long houseId,
+            @Parameter(description = "분석 요청 사용자 ID. 현재는 요청값으로 받고, 인증 적용 후 JWT에서 추출합니다.", example = "7", required = true)
+            @RequestParam("userId") Long userId,
             @Parameter(description = "전세 보증금(원). 쉼표 입력도 가능합니다.", example = "120000000", required = true)
             @RequestParam("deposit") String deposit,
             @Parameter(description = "확인한 주택 시세(원). 없으면 공시가격 또는 PDF 정보로 산정합니다.", example = "210000000")
@@ -114,6 +121,9 @@ public class SubmissionController {
         String submissionId = submissionService.submit(
                 owner,
                 tenantName,
+                address,
+                houseId,
+                userId,
                 parseRequiredLong(deposit, "deposit"),
                 parseOptionalLong(price, "price"),
                 parseOptionalLong(publicPrice, "publicPrice"),
@@ -241,10 +251,10 @@ public class SubmissionController {
                             mediaType = "application/json",
                             examples = {
                                     @ExampleObject(name = "분석 대기", value = """
-                                            {"submissionId":"sub_8c2dca11b4204c25afd061386ed802c7","status":"QUEUED","riskLevel":null,"riskScore":null,"analysis":null}
+                                            {"submissionId":"sub_8c2dca11b4204c25afd061386ed802c7","houseId":42,"userId":7,"address":"서울특별시 동대문구 전농동 152-73","status":"QUEUED","riskLevel":null,"riskScore":null,"analysis":null}
                                             """),
                                     @ExampleObject(name = "분석 완료", value = """
-                                            {"submissionId":"sub_8c2dca11b4204c25afd061386ed802c7","status":"ANALYZED","riskLevel":"WARNING","riskScore":47.0,"analysis":{"analysisStatus":"COMPLETE","propertyType":"COLLECTIVE","currentOwner":"배경미","ownerNames":"배경미","ownerMatchesContract":true,"mortgageTotal":54000000,"riskRatio":0.8455,"riskLevel":"WARNING","hugEligible":true,"lhEligible":true,"flags":["근저당+보증금 비율이 90% 한도에 근접합니다."]}}
+                                            {"submissionId":"sub_8c2dca11b4204c25afd061386ed802c7","houseId":42,"userId":7,"address":"서울특별시 동대문구 전농동 152-73","status":"ANALYZED","riskLevel":"WARNING","riskScore":47.0,"analysis":{"analysisStatus":"COMPLETE","propertyType":"COLLECTIVE","registryAddress":"전농동 152-73","addressMatchesSubmission":true,"addressMatchBasis":"SUBMITTED_ADDRESS","currentOwner":"배경미","ownerNames":"배경미","ownerMatchesContract":true,"mortgageTotal":54000000,"riskRatio":0.8455,"riskLevel":"WARNING","hugEligible":true,"lhEligible":true,"flags":["근저당+보증금 비율이 90% 한도에 근접합니다."]}}
                                             """)
                             }
                     )

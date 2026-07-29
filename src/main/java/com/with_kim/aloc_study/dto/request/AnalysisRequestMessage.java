@@ -24,6 +24,8 @@ public record AnalysisRequestMessage(
     public record ContractContext(
             String owner,       // 임대인 이름 — 등기부상 소유자와 일치 여부 판정에 사용
             String tenantName,  // 임차인 이름 — 분석 로직에는 미사용, 메타데이터로만 전달
+            String address,     // 사용자가 제출한 원래 주소 — 등기부 표제부와 우선 비교
+            String roadAddress, // houseId로 조회한 도로명 주소 — 원래 주소 불일치 시 보조 비교
             Long deposit,
             Long price,
             Long publicPrice,

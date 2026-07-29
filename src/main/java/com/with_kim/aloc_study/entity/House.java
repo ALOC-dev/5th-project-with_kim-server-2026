@@ -26,6 +26,9 @@ public class House{
     @JoinColumn(name = "building_id")
     private Building building;
 
+    @OneToMany(mappedBy = "house")
+    private List<Submission> submissions = new ArrayList<>();
+
     private Long price; //매매가
     private Long deposit; //보증금
     private Long monthlyRent; //월세
