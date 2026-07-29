@@ -11,6 +11,7 @@ package com.with_kim.aloc_study.dto.request;
 public record AnalysisRequestMessage(
         String submissionId,
         String propertyType,
+        String leaseType,
         java.util.List<SourceInfo> sources,
         ContractContext contract
 ) {

@@ -90,7 +90,7 @@ public class SubmissionController {
             @RequestParam("houseId") Long houseId,
             @Parameter(description = "분석 요청 사용자 ID. 현재는 요청값으로 받고, 인증 적용 후 JWT에서 추출합니다.", example = "7", required = true)
             @RequestParam("userId") Long userId,
-            @Parameter(description = "전세 보증금(원). 쉼표 입력도 가능합니다.", example = "120000000", required = true)
+            @Parameter(description = "전세 또는 월세 계약의 보증금(원). 월세는 이 금액의 예상 회수율을 분석합니다. 쉼표 입력도 가능합니다.", example = "120000000", required = true)
             @RequestParam("deposit") String deposit,
             @Parameter(description = "확인한 주택 시세(원). 없으면 공시가격 또는 PDF 정보로 산정합니다.", example = "210000000")
             @RequestParam(value = "price", required = false) String price,
@@ -98,7 +98,7 @@ public class SubmissionController {
             @RequestParam(value = "publicPrice", required = false) String publicPrice,
             @Parameter(description = "알고 있는 선순위 임차보증금 합계(원)", example = "0")
             @RequestParam(value = "seniorTenantDeposits", required = false) String seniorTenantDeposits,
-            @Parameter(description = "임대 유형", example = "JEONSE", required = true,
+            @Parameter(description = "임대 유형. JEONSE는 전세가율·HUG/LH 사전점검, WOLSE는 보증금 예상 회수율을 분석합니다.", example = "JEONSE", required = true,
                     schema = @Schema(allowableValues = {"JEONSE", "WOLSE"}))
             @RequestParam("leaseType") String leaseType,
             @Parameter(description = "주택 유형. 생략하면 PDF에서 추론합니다.", example = "COLLECTIVE",
@@ -254,7 +254,7 @@ public class SubmissionController {
                                             {"submissionId":"sub_8c2dca11b4204c25afd061386ed802c7","houseId":42,"userId":7,"address":"서울특별시 동대문구 전농동 152-73","status":"QUEUED","riskLevel":null,"riskScore":null,"analysis":null}
                                             """),
                                     @ExampleObject(name = "분석 완료", value = """
-                                            {"submissionId":"sub_8c2dca11b4204c25afd061386ed802c7","houseId":42,"userId":7,"address":"서울특별시 동대문구 전농동 152-73","status":"ANALYZED","riskLevel":"WARNING","riskScore":47.0,"analysis":{"analysisStatus":"COMPLETE","propertyType":"COLLECTIVE","registryAddress":"전농동 152-73","addressMatchesSubmission":true,"addressMatchBasis":"SUBMITTED_ADDRESS","currentOwner":"배경미","ownerNames":"배경미","ownerMatchesContract":true,"mortgageTotal":54000000,"riskRatio":0.8455,"riskLevel":"WARNING","hugEligible":true,"lhEligible":true,"flags":["근저당+보증금 비율이 90% 한도에 근접합니다."]}}
+                                            {"submissionId":"sub_8c2dca11b4204c25afd061386ed802c7","houseId":42,"userId":7,"address":"서울특별시 동대문구 전농동 152-73","status":"ANALYZED","riskLevel":"WARNING","riskScore":47.0,"analysis":{"analysisStatus":"COMPLETE","propertyType":"COLLECTIVE","leaseType":"JEONSE","registryAddress":"전농동 152-73","addressMatchesSubmission":true,"addressMatchBasis":"SUBMITTED_ADDRESS","currentOwner":"배경미","ownerNames":"배경미","ownerMatchesContract":true,"mortgageTotal":54000000,"jeonseRate":58.31,"riskRatio":0.8455,"riskLevel":"WARNING","hugEligible":true,"lhEligible":true,"flags":["근저당+보증금 비율이 90% 한도에 근접합니다."]}}
                                             """)
                             }
                     )

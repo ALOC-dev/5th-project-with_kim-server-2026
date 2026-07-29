@@ -100,15 +100,6 @@ public class SubmissionService {
                         HttpStatus.NOT_FOUND, "user not found: " + userId));
         String roadAddress = roadAddressOf(house);
 
-        // 0) 임대 유형 검증 — 현재는 전세만 분석을 지원한다.
-        //    월세는 보증금 구조가 달라(보증금+월차임) 기존 전세가율/HUG 판정 로직을
-        //    그대로 적용하면 잘못된 결과가 나오므로, 로직이 준비되기 전까지는
-        //    접수 단계에서 명확하게 거부한다. (S3/SQS 리소스도 아끼는 효과)
-        if (leaseType != Submission.LeaseType.JEONSE) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "현재는 전세 계약만 분석을 지원합니다. 월세 지원은 준비 중입니다.");
-        }
-
         // price(시세)는 선택값이다 — 없으면 analyzer.py가 공시가격×1.4로 자동 환산해서
         // 주택가격을 계산한다(HUG 산정 방식). 다만 둘 다 없으면 주택가격 산정
         // 근거 자체가 없어서 위험도 계산이 무의미해지므로, 그 경우만 여기서 막는다.
@@ -134,6 +125,7 @@ public class SubmissionService {
         AnalysisRequestMessage message = new AnalysisRequestMessage(
                 submissionId,
                 propertyType == null ? null : propertyType.name(),
+                leaseType.name(),
                 sources,
                 new AnalysisRequestMessage.ContractContext(
                         owner, tenantName, submission.getAddress(), roadAddress,
@@ -188,6 +180,7 @@ public class SubmissionService {
         AnalysisRequestMessage message = new AnalysisRequestMessage(
                 submissionId,
                 submission.getPropertyType() == null ? null : submission.getPropertyType().name(),
+                submission.getLeaseType().name(),
                 sourcesFromDocuments(submission),
                 new AnalysisRequestMessage.ContractContext(
                         submission.getOwner(),
