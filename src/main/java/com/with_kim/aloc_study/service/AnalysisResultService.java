@@ -3,6 +3,7 @@ package com.with_kim.aloc_study.service;
 import com.with_kim.aloc_study.entity.AnalysisMessage;
 import com.with_kim.aloc_study.entity.AnalysisRegistryHit;
 import com.with_kim.aloc_study.entity.AnalysisResult;
+import com.with_kim.aloc_study.entity.House;
 import com.with_kim.aloc_study.entity.Submission;
 import com.with_kim.aloc_study.repository.AnalysisResultRepository;
 import com.with_kim.aloc_study.repository.SubmissionRepository;
@@ -98,11 +99,33 @@ public class AnalysisResultService {
 
         analysisResultRepository.save(result);
         submission.applyAnalysisSummary(analysisStatus, riskLevel, riskScore);
+        updateHouseAnalysisSummary(submission, result);
 
         log.info("분석 결과 반영 완료: submissionId={}, analysisStatus={}, riskLevel={}, riskScore={}, mortgages={}, messages={}",
                 submissionId, analysisStatus, riskLevel, riskScore,
                 result.getMortgageItems().size(), result.getMessages().size());
         // JPA dirty checking으로 트랜잭션 커밋 시점에 UPDATE 쿼리 발생 — save() 재호출 불필요
+    }
+
+    private void updateHouseAnalysisSummary(Submission submission, AnalysisResult result) {
+        if (!"COMPLETE".equals(result.getAnalysisStatus()) || submission.getHouse() == null) {
+            return;
+        }
+
+        House house = submission.getHouse();
+        house.updateAnalysisSummary(
+                result.getAnalysisStatus(),
+                result.getLeaseType(),
+                result.getRiskLevel(),
+                result.getRiskScore(),
+                result.getMortgageTotal(),
+                result.getJeonseRate(),
+                result.getLhEligible(),
+                result.getHugEligible(),
+                result.getEstimatedRecoverableDeposit(),
+                result.getDepositRecoveryRate(),
+                result.getUpdatedAt()
+        );
     }
 
     private void addDocuments(AnalysisResult result, JsonNode documents) {

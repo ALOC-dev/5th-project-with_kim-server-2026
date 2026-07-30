@@ -62,6 +62,41 @@ public class House{
     private String image2Url;
     private String image3Url;
 
+    // 가장 최근에 완료된 등기부 분석의 조회용 요약값이다.
+    // 보증금·임대 유형에 따라 달라질 수 있으므로 원본 이력은 Submission/AnalysisResult에 보존한다.
+    @Column(name = "analysis_status", length = 30)
+    private String analysisStatus;
+
+    @Column(name = "analysis_lease_type", length = 10)
+    private String analysisLeaseType;
+
+    @Column(name = "risk_level", length = 20)
+    private String riskLevel;
+
+    @Column(name = "risk_score")
+    private Double riskScore;
+
+    @Column(name = "mortgage_total")
+    private Long mortgageTotal;
+
+    @Column(name = "jeonse_rate")
+    private Double jeonseRate;
+
+    @Column(name = "lh_eligible")
+    private Boolean lhEligible;
+
+    @Column(name = "hug_eligible")
+    private Boolean hugEligible;
+
+    @Column(name = "estimated_recoverable_deposit")
+    private Long estimatedRecoverableDeposit;
+
+    @Column(name = "deposit_recovery_rate")
+    private Double depositRecoveryRate;
+
+    @Column(name = "analysis_updated_at")
+    private LocalDateTime analysisUpdatedAt;
+
     public List<String> getImageUrls() {
         return Stream.of(image1Url, image2Url, image3Url)
                 .filter(Objects::nonNull)
@@ -100,5 +135,31 @@ public class House{
     public void updateMetadata(String metadataJson) {
         this.metadata = metadataJson;
         this.metadataUpdatedAt = LocalDateTime.now();
+    }
+
+    public void updateAnalysisSummary(
+            String analysisStatus,
+            String analysisLeaseType,
+            String riskLevel,
+            Double riskScore,
+            Long mortgageTotal,
+            Double jeonseRate,
+            Boolean lhEligible,
+            Boolean hugEligible,
+            Long estimatedRecoverableDeposit,
+            Double depositRecoveryRate,
+            LocalDateTime analysisUpdatedAt
+    ) {
+        this.analysisStatus = analysisStatus;
+        this.analysisLeaseType = analysisLeaseType;
+        this.riskLevel = riskLevel;
+        this.riskScore = riskScore;
+        this.mortgageTotal = mortgageTotal;
+        this.jeonseRate = jeonseRate;
+        this.lhEligible = lhEligible;
+        this.hugEligible = hugEligible;
+        this.estimatedRecoverableDeposit = estimatedRecoverableDeposit;
+        this.depositRecoveryRate = depositRecoveryRate;
+        this.analysisUpdatedAt = analysisUpdatedAt == null ? LocalDateTime.now() : analysisUpdatedAt;
     }
 }
