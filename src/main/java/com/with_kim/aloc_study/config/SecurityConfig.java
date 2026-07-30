@@ -52,7 +52,8 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "https://5th-project-with-kim-client-2026-kimjungmooks-projects.vercel.app"
+                "https://5th-project-with-kim-client-2026-kimjungmooks-projects.vercel.app",
+                "https://www.sibang.co.kr"
                 // 배포된 프론트 도메인이 있다면 여기에 추가, 예: "https://sibang.site"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
