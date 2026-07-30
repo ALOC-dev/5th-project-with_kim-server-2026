@@ -54,11 +54,10 @@ public class AuthService {
 
         Users user = userRepository.findByLoginId(loginId)
                 .orElseGet(() -> {
-                    Users newUser = Users.create(
-                            loginId,
-                            passwordEncoder.encode("KAKAO_USER"),
-                            username
-                    );
+                    Users newUser = new Users();
+                    newUser.setLoginId(loginId);
+                    newUser.setPassword(passwordEncoder.encode("KAKAO_USER"));
+                    newUser.setUsername(username);
 
                     return userRepository.save(newUser);
                 });
