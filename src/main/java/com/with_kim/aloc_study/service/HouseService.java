@@ -1,15 +1,21 @@
 package com.with_kim.aloc_study.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.with_kim.aloc_study.dto.HouseSearchCondition;
+import com.with_kim.aloc_study.dto.request.HouseCreateRequest;
 import com.with_kim.aloc_study.dto.response.HouseResponse;
 import com.with_kim.aloc_study.dto.response.HouseSchoolDistanceResponse;
+import com.with_kim.aloc_study.entity.Building;
 import com.with_kim.aloc_study.entity.House;
+import com.with_kim.aloc_study.entity.Users;
 import com.with_kim.aloc_study.exception.InvalidRequestException;
 import com.with_kim.aloc_study.exception.ResourceNotFoundException;
+import com.with_kim.aloc_study.repository.BuildingRepository;
 import com.with_kim.aloc_study.repository.HouseQueryRepository;
 import com.with_kim.aloc_study.repository.HouseRepository;
+import com.with_kim.aloc_study.repository.UserRepository;
 import com.with_kim.aloc_study.repository.projection.HouseSchoolDistanceProjection;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,8 +30,11 @@ import java.util.List;
 public class HouseService {
 
     private final HouseRepository houseRepository;
+    private final BuildingRepository buildingRepository;
     private final MetadataService metadataService;
     private final HouseQueryRepository houseQueryRepository;
+    private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     public Page<HouseResponse> getAllHouses(Pageable pageable) {
         return houseRepository.findAllWithBuilding(pageable)
@@ -120,7 +129,50 @@ public class HouseService {
             throw new InvalidRequestException("월세 최소값이 최대값보다 클 수 없습니다.");
         }
     }
-}
 
+    // 매물 등록
+    @Transactional
+    public HouseResponse createHouse(Long userId, HouseCreateRequest request) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다. id=" + userId));
+
+        Building building = buildingRepository.findById(request.buildingId())
+                .orElseThrow(() -> new ResourceNotFoundException("건물을 찾을 수 없습니다. id=" + request.buildingId()));
+
+        House house = House.create(
+                building,
+                request.price(),
+                request.deposit(),
+                request.monthlyRent(),
+                request.area(),
+                request.roomNumber(),
+                request.toilet(),
+                request.managementFee(),
+                House.ContractType.valueOf(request.contractType()),
+                request.floor(),
+                House.Direction.valueOf(request.direction()),
+                request.description(),
+                toMetadataJson(request),
+                request.imageUrls()
+        );
+
+
+        House savedHouse = houseRepository.save(house);
+
+        return HouseResponse.from(savedHouse);
+    }
+
+    private String toMetadataJson(HouseCreateRequest request) {
+        if (request.metadata() == null) {
+            return null;
+        }
+
+        try {
+            return objectMapper.writeValueAsString(request.metadata());
+        } catch (JsonProcessingException e) {
+            throw new InvalidRequestException("metadata 형식이 올바르지 않습니다.");
+        }
+    }
+}
 
 

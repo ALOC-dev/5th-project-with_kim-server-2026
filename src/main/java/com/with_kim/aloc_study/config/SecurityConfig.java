@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -38,7 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/login/kakao", "/api/auth/kakao").permitAll()
                                 .requestMatchers("/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
-                                .requestMatchers("/api/houses/**", "/api/school-buildings/**", "/api/infrastructures/**").permitAll()   // ← 이 줄 추가
+                                .requestMatchers(HttpMethod.GET, "/api/houses/**", "/api/school-buildings/**", "/api/infrastructures/**").permitAll()
                                 .anyRequest()
                                 .authenticated()
                 )
