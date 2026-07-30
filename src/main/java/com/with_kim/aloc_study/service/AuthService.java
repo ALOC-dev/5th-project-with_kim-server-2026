@@ -57,6 +57,7 @@ public class AuthService {
                     Users newUser = new Users();
                     newUser.setLoginId(loginId);
                     newUser.setPassword(passwordEncoder.encode("KAKAO_USER"));
+                    newUser.setRole(Users.Role.USER);
                     newUser.setUsername(username);
 
                     return userRepository.save(newUser);

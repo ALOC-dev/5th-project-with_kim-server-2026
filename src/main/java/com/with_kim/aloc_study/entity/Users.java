@@ -12,6 +12,12 @@ import java.util.List;
 @Entity
 public class Users {
 
+    public enum Role {
+        USER,
+        AGENT,
+        ADMIN
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -20,6 +26,9 @@ public class Users {
     private String loginId;
 
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     private String username;
 
