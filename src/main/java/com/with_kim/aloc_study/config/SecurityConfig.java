@@ -1,9 +1,14 @@
 package com.with_kim.aloc_study.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.with_kim.aloc_study.dto.ResultDto;
 import com.with_kim.aloc_study.security.JwtAuthenticationFilter;
 import com.with_kim.aloc_study.security.JwtProvider;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,7 +27,7 @@ import java.util.List;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, JwtProvider jwtProvider) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, JwtProvider jwtProvider, ObjectMapper objectMapper) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
@@ -35,8 +40,23 @@ public class SecurityConfig {
                                 .requestMatchers("/", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/api-docs/**").permitAll()
                                 .requestMatchers("/api/houses/**", "/api/school-buildings/**", "/api/infrastructures/**").permitAll()   // ← 이 줄 추가
                                 .anyRequest()
-//                        .permitAll()
                                 .authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) ->
+                                writeErrorResponse(
+                                        response,
+                                        objectMapper,
+                                        HttpStatus.UNAUTHORIZED,
+                                        "인증이 필요합니다."
+                                ))
+                        .accessDeniedHandler((request, response, accessDeniedException) ->
+                                writeErrorResponse(
+                                        response,
+                                        objectMapper,
+                                        HttpStatus.FORBIDDEN,
+                                        "접근 권한이 없습니다."
+                                ))
                 )
                 .headers(headers -> headers
                         .addHeaderWriter(new XFrameOptionsHeaderWriter(
@@ -47,18 +67,43 @@ public class SecurityConfig {
         return http.build();
     }
 
+    private void writeErrorResponse(
+            HttpServletResponse response,
+            ObjectMapper objectMapper,
+            HttpStatus status,
+            String message
+    ) throws java.io.IOException {
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+
+        ResultDto resultDto = ResultDto.builder()
+                .success(false)
+                .message(message)
+                .code(status.value())
+                .build();
+
+        objectMapper.writeValue(response.getWriter(), resultDto);
+    }
+
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
+                "http://localhost:5173",
+                "http://localhost:8080",
+                "http://127.0.0.1:3000",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:8080",
                 "https://5th-project-with-kim-client-2026-kimjungmooks-projects.vercel.app",
                 "https://www.sibang.co.kr"
-                // 배포된 프론트 도메인이 있다면 여기에 추가, 예: "https://sibang.site"
         ));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true); // 쿠키/Authorization 헤더 쓰면 true
+        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

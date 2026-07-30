@@ -54,10 +54,11 @@ public class AuthService {
 
         Users user = userRepository.findByLoginId(loginId)
                 .orElseGet(() -> {
-                    Users newUser = new Users();
-                    newUser.setLoginId(loginId);
-                    newUser.setPassword(passwordEncoder.encode("KAKAO_USER"));
-                    newUser.setUsername(username);
+                    Users newUser = Users.create(
+                            loginId,
+                            passwordEncoder.encode("KAKAO_USER"),
+                            username
+                    );
 
                     return userRepository.save(newUser);
                 });
@@ -121,6 +122,6 @@ public class AuthService {
             );
         }
 
-        return new LoginResponse(user.getId(), accessToken, refreshToken, "Bearer");
+        return new LoginResponse(user.getId(), user.getUsername(), accessToken, refreshToken, "Bearer");
     }
 }
