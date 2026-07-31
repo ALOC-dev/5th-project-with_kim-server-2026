@@ -47,6 +47,7 @@ public class JwtProvider {
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
                 .claim("loginId", user.getLoginId())
+                .claim("role", user.getRole().name())
                 .claim("type", "access")
                 .issuedAt(now)
                 .expiration(expiredDate)
@@ -61,6 +62,7 @@ public class JwtProvider {
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
                 .claim("loginId", user.getLoginId())
+                .claim("role", user.getRole().name())
                 .claim("type", "refresh")
                 .issuedAt(now)
                 .expiration(expiredDate)
@@ -70,11 +72,12 @@ public class JwtProvider {
 
     public Authentication getAuthentication(String token) {
         String username = getUsername(token);
+        String role = getRole(token);
 
         UserDetails userDetails = User.builder()
                 .username(username)
                 .password("")
-                .authorities("ROLE_USER")
+                .authorities("ROLE_" + role)
                 .build();
 
         return new UsernamePasswordAuthenticationToken(
@@ -133,6 +136,13 @@ public class JwtProvider {
     public String getTokenType(String token) {
         return parseClaims(token)
                 .get("type", String.class);
+    }
+
+    public String getRole(String token) {
+        String role = parseClaims(token)
+                .get("role", String.class);
+
+        return role == null ? Users.Role.USER.name() : role;
     }
 
     private Claims parseClaims(String token) {

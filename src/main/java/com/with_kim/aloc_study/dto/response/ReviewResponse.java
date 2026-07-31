@@ -15,6 +15,8 @@ public class ReviewResponse {
 
     private long id;
 
+    private long userId;
+
     private String username;
 
     private long houseId;
@@ -46,6 +48,7 @@ public class ReviewResponse {
 
         return new ReviewResponse(
                 review.getId(),
+                user.getId(),
                 user.getUsername(),
                 house.getId(),
                 review.getCreatedAt(),
