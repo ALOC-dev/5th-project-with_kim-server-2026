@@ -32,6 +32,20 @@ public class Users {
 
     private String username;
 
+    private String department;
+
+    private Long preferredSchoolBuildingId;
+
+    private Long preferredDeposit;
+
+    private Long budget;
+
+    private Boolean prefersMonthlyRent;
+
+    private Boolean prefersJeonse;
+
+    private Boolean notificationEnabled;
+
     @OneToMany(mappedBy = "user")
     private List<Submission> submissions = new ArrayList<>();
 
