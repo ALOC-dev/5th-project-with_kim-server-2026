@@ -1,6 +1,7 @@
 package com.with_kim.aloc_study.repository;
 
 import com.with_kim.aloc_study.entity.House;
+import com.with_kim.aloc_study.entity.WishList;
 import com.with_kim.aloc_study.repository.projection.HouseSchoolDistanceProjection;
 import com.with_kim.aloc_study.repository.projection.HouseWithDistanceProjection;
 import org.springframework.data.domain.Page;
