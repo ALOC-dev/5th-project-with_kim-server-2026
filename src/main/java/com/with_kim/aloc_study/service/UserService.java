@@ -2,9 +2,14 @@ package com.with_kim.aloc_study.service;
 
 import com.with_kim.aloc_study.dto.request.UserUpdateRequest;
 import com.with_kim.aloc_study.dto.response.UserResponse;
+import com.with_kim.aloc_study.entity.Submission;
 import com.with_kim.aloc_study.entity.Users;
 import com.with_kim.aloc_study.exception.ResourceNotFoundException;
+import com.with_kim.aloc_study.repository.RefreshTokenRepository;
+import com.with_kim.aloc_study.repository.ReviewRepository;
+import com.with_kim.aloc_study.repository.SubmissionRepository;
 import com.with_kim.aloc_study.repository.UserRepository;
+import com.with_kim.aloc_study.repository.WishListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +21,10 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final WishListRepository wishListRepository;
+    private final ReviewRepository reviewRepository;
+    private final SubmissionRepository submissionRepository;
 
     public Users create(String loginId, String password, String username) {
         if (userRepository.existsByLoginId(loginId)) {
@@ -85,6 +94,19 @@ public class UserService {
         }
 
         return UserResponse.from(user);
+    }
+
+    @Transactional
+    public void deleteMyAccount(Long userId) {
+        Users user = findUser(userId);
+
+        refreshTokenRepository.deleteByUserId(userId);
+        wishListRepository.deleteByUser_Id(userId);
+        reviewRepository.deleteByUser_Id(userId);
+        submissionRepository.findByUser_Id(userId)
+                .forEach(Submission::removeUser);
+
+        userRepository.delete(user);
     }
 
     private Users findUser(Long userId) {
