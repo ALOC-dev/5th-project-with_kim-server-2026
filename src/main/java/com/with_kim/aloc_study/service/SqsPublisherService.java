@@ -1,6 +1,7 @@
 package com.with_kim.aloc_study.service;
 
 import com.with_kim.aloc_study.dto.request.AnalysisRequestMessage;
+import com.with_kim.aloc_study.dto.request.ResidenceAddressExtractionRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,16 +20,19 @@ public class SqsPublisherService {
 
     private final SqsClient sqsClient;
     private final JsonMapper jsonMapper;
-    private final String queueUrl;
+    private final String registryRequestQueueUrl;
+    private final String residenceRequestQueueUrl;
 
     public SqsPublisherService(
             SqsClient sqsClient,
             JsonMapper jsonMapper,
-            @Value("${aws.sqs.request-queue-url}") String queueUrl
+            @Value("${aws.sqs.request-queue-url}") String registryRequestQueueUrl,
+            @Value("${aws.sqs.residence-request-queue-url}") String residenceRequestQueueUrl
     ){
         this.sqsClient = sqsClient;
         this.jsonMapper = jsonMapper;
-        this.queueUrl = queueUrl;
+        this.registryRequestQueueUrl = registryRequestQueueUrl;
+        this.residenceRequestQueueUrl = residenceRequestQueueUrl;
     }
 
 
@@ -41,22 +45,38 @@ public class SqsPublisherService {
      */
 
     public void publish(AnalysisRequestMessage message){
+        publishMessage(
+                message,
+                "submissionId=" + message.submissionId(),
+                registryRequestQueueUrl
+        );
+    }
+
+    public void publish(ResidenceAddressExtractionRequest message) {
+        publishMessage(
+                message,
+                "messageType=" + message.messageType() + ", userId=" + message.userId(),
+                residenceRequestQueueUrl
+        );
+    }
+
+    private void publishMessage(Object message, String messageDescription, String targetQueueUrl) {
         try{
            String body = jsonMapper.writeValueAsString(message);
 
             SendMessageRequest request = SendMessageRequest.builder()
-                    .queueUrl(queueUrl)
+                    .queueUrl(targetQueueUrl)
                     .messageBody(body)
                     .build();
 
             SendMessageResponse response = sqsClient.sendMessage(request);
 
-            log.info("SQS 발행 완료 : submissionId={}, messageId={}", message.submissionId(), response.messageId());
+            log.info("SQS 발행 완료: {}, messageId={}", messageDescription, response.messageId());
         }catch (JacksonException e){
-            throw new IllegalArgumentException("분석 요청 메시지 직렬화 실패 : submissionId = " + message.submissionId(), e);
+            throw new IllegalArgumentException("SQS 요청 메시지 직렬화 실패: " + messageDescription, e);
         }catch (Exception e){
-            log.error("SQS 발행 실패 : submissionId=" + message.submissionId(), e);
-            throw new IllegalArgumentException("SQS 발행 실패 : submissionId = " + message.submissionId(), e);
+            log.error("SQS 발행 실패: " + messageDescription, e);
+            throw new IllegalArgumentException("SQS 발행 실패: " + messageDescription, e);
         }
     }
 }

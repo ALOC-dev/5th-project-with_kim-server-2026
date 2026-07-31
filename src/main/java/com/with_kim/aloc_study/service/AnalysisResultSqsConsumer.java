@@ -22,6 +22,7 @@ public class AnalysisResultSqsConsumer {
     private final SqsClient sqsClient;
     private final JsonMapper jsonMapper;
     private final AnalysisResultService analysisResultService;
+    private final ResidenceVerificationResultService residenceVerificationResultService;
     private final String resultQueueUrl;
 
     private boolean disabledLogPrinted = false;
@@ -30,11 +31,13 @@ public class AnalysisResultSqsConsumer {
             SqsClient sqsClient,
             JsonMapper jsonMapper,
             AnalysisResultService analysisResultService,
+            ResidenceVerificationResultService residenceVerificationResultService,
             @Value("${aws.sqs.result-queue-url:}") String resultQueueUrl
     ) {
         this.sqsClient = sqsClient;
         this.jsonMapper = jsonMapper;
         this.analysisResultService = analysisResultService;
+        this.residenceVerificationResultService = residenceVerificationResultService;
         this.resultQueueUrl = resultQueueUrl;
     }
 
@@ -68,6 +71,15 @@ public class AnalysisResultSqsConsumer {
     private void processMessage(Message message) {
         try {
             JsonNode root = jsonMapper.readTree(message.body());
+            if ("RESIDENCE_ADDRESS_EXTRACTION".equals(textOrNull(root, "messageType"))) {
+                Long userId = extractUserId(root);
+                residenceVerificationResultService.applyResult(userId, root);
+                deleteMessage(message);
+                log.info("초본 주소 추출 결과 처리 완료: userId={}, messageId={}",
+                        userId, message.messageId());
+                return;
+            }
+
             String submissionId = extractSubmissionId(root);
             JsonNode analysis = extractAnalysis(root);
             JsonNode rawResult = root.path("rawResult");
@@ -85,6 +97,14 @@ public class AnalysisResultSqsConsumer {
         } catch (Exception e) {
             log.error("분석 결과 SQS 메시지 처리 실패: messageId={}", message.messageId(), e);
         }
+    }
+
+    private Long extractUserId(JsonNode root) {
+        JsonNode userId = root.path("userId");
+        if (userId.isMissingNode() || userId.isNull() || !userId.canConvertToLong()) {
+            throw new IllegalArgumentException("초본 분석 결과 메시지에 userId가 없습니다");
+        }
+        return userId.asLong();
     }
 
     private String extractSubmissionId(JsonNode root) {
