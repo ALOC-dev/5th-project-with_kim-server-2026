@@ -9,9 +9,11 @@ public record MetadataDto(int martCount,
                           int restaurantCount,
                           int cafeCount,
                           int hospitalCount,
-                          int pharmacyCount
+                          int pharmacyCount,
+                          int policeCount,
+                          int cctvCount
                           ) {
     public static MetadataDto empty(){
-        return new MetadataDto(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        return new MetadataDto(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
 }
