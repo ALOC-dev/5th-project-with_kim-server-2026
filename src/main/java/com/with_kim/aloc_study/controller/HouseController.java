@@ -41,6 +41,8 @@ public class HouseController {
         Long userId = Long.valueOf(authentication.getName());
         HouseResponse response = houseService.createHouse(userId, request);
 
+        houseService.updateHouseMetadataAfterCreate(response.houseId()); //등록 트랜잭션 실행 완료 후 Metadata 갱신
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -124,6 +126,8 @@ public class HouseController {
             @Parameter(description = "반경 내 최소 카페 개수") @RequestParam(required = false) Integer minCafe,
             @Parameter(description = "반경 내 최소 병원 개수") @RequestParam(required = false) Integer minHospital,
             @Parameter(description = "반경 내 최소 약국 개수") @RequestParam(required = false) Integer minPharmacy,
+            @Parameter(description = "반경 내 최소 경찰서/지구대/파출소 개수") @RequestParam(required = false) Integer minPolice,
+            @Parameter(description = "반경 내 최소 CCTV 개수") @RequestParam(required = false) Integer minCctv,
 
             @Parameter(description = "정렬 기준 (PRICE_ASC, PRICE_DESC, AREA_ASC, AREA_DESC, FLOOR_ASC, FLOOR_DESC)")
             @RequestParam(required = false, defaultValue = "PRICE_ASC") String sort,
@@ -138,6 +142,7 @@ public class HouseController {
                 schoolBuildingId, maxDistanceFromSchool,
                 minMart, minConvenienceStore, minParking, minSubway, minBank,
                 minPO, minRestaurant, minCafe, minHospital, minPharmacy,
+                minPolice, minCctv,
                 sort
         );
 

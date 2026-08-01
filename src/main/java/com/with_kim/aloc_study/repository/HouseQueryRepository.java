@@ -105,7 +105,9 @@ public class HouseQueryRepository {
                     condition.minRestaurant(),
                     condition.minCafe(),
                     condition.minHospital(),
-                    condition.minPharmacy()
+                    condition.minPharmacy(),
+                    condition.minPolice(),
+                    condition.minCctv()
             );
             houseIds = new HashSet<>(filtered);
 
@@ -145,7 +147,9 @@ public class HouseQueryRepository {
                 || condition.minRestaurant() != null
                 || condition.minCafe() != null
                 || condition.minHospital() != null
-                || condition.minPharmacy() != null;
+                || condition.minPharmacy() != null
+                || condition.minPolice() != null
+                || condition.minCctv() != null;
     }
 
     private boolean hasSchoolBuildingCondition(HouseSearchCondition condition) {

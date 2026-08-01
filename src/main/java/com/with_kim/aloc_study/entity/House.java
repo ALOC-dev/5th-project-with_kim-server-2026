@@ -30,6 +30,9 @@ public class House{
     @OneToMany(mappedBy = "house")
     private List<Submission> submissions = new ArrayList<>();
 
+    @OneToMany(mappedBy = "house")
+    private List<VerifiedAddress> verifiedAddresses = new ArrayList<>();
+
     private Long price; //매매가
     private Long deposit; //보증금
     private Long monthlyRent; //월세
@@ -162,6 +165,16 @@ public class House{
         this.estimatedRecoverableDeposit = estimatedRecoverableDeposit;
         this.depositRecoveryRate = depositRecoveryRate;
         this.analysisUpdatedAt = analysisUpdatedAt == null ? LocalDateTime.now() : analysisUpdatedAt;
+    }
+
+    void addVerifiedAddress(VerifiedAddress verifiedAddress) {
+        if (!verifiedAddresses.contains(verifiedAddress)) {
+            verifiedAddresses.add(verifiedAddress);
+        }
+    }
+
+    void removeVerifiedAddress(VerifiedAddress verifiedAddress) {
+        verifiedAddresses.remove(verifiedAddress);
     }
 
     public static House create(

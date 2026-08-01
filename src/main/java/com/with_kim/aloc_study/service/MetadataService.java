@@ -5,6 +5,7 @@ import com.with_kim.aloc_study.dto.MetadataDto;
 import com.with_kim.aloc_study.entity.House;
 import com.with_kim.aloc_study.infrastructure.KakaoApiClient;
 import com.with_kim.aloc_study.repository.HouseRepository;
+import com.with_kim.aloc_study.repository.InfrastructureRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ public class MetadataService {
     private static final Logger logger = LoggerFactory.getLogger(MetadataService.class);
 
     private final KakaoApiClient kakaoApiClient;
+    private final InfrastructureRepository infrastructureRepository;
     private final HouseRepository houseRepository;
     private final ObjectMapper objectMapper;
 
@@ -41,8 +43,6 @@ public class MetadataService {
                     CompletableFuture.supplyAsync(() -> kakaoApiClient.countByCategory(lat, lng, "CS2", RADIUS_METERS));
             CompletableFuture<Integer> parking =
                     CompletableFuture.supplyAsync(() -> kakaoApiClient.countByCategory(lat, lng, "PK6", RADIUS_METERS));
-            CompletableFuture<Integer> subway =
-                    CompletableFuture.supplyAsync(() -> kakaoApiClient.countByCategory(lat, lng, "SW8", RADIUS_METERS));
             CompletableFuture<Integer> bank =
                     CompletableFuture.supplyAsync(() -> kakaoApiClient.countByCategory(lat, lng, "BK9", RADIUS_METERS));
             CompletableFuture<Integer> PO =
@@ -56,10 +56,21 @@ public class MetadataService {
             CompletableFuture<Integer> pharmacy =
                     CompletableFuture.supplyAsync(() -> kakaoApiClient.countByCategory(lat, lng, "PM9", RADIUS_METERS));
 
+            CompletableFuture<Integer> subway =
+                    CompletableFuture.supplyAsync(() -> infrastructureRepository.countByCategoryWithinRadius(
+                            "SUBWAY", lat, lng, (double) RADIUS_METERS));
+            CompletableFuture<Integer> police =
+                    CompletableFuture.supplyAsync(() -> infrastructureRepository.countByCategoryWithinRadius(
+                            "POLICE", lat, lng, (double) RADIUS_METERS));
+            CompletableFuture<Integer> cctv =
+                    CompletableFuture.supplyAsync(() -> infrastructureRepository.countByCategoryWithinRadius(
+                            "CCTV", lat, lng, (double) RADIUS_METERS));
+
+
             CompletableFuture.allOf(mart, convenienceStore, parking, subway, bank, PO, restaurant, cafe, hospital, pharmacy).join();
 
             MetadataDto metadata = new MetadataDto(mart.get(), convenienceStore.get(), parking.get(), subway.get(), bank.get(),
-                    PO.get(), restaurant.get(), cafe.get(), hospital.get(), pharmacy.get());
+                    PO.get(), restaurant.get(), cafe.get(), hospital.get(), pharmacy.get(), police.get(), cctv.get());
 
             String metadataJson = objectMapper.writeValueAsString(metadata);
             houseRepository.updateMetadata(house.getId(), metadataJson, LocalDateTime.now());
