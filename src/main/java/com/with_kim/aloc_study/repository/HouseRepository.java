@@ -171,6 +171,9 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     void updateMetadata(@Param("houseId") Long houseId,
                         @Param("metadata") String metadata,
                         @Param("updatedAt") LocalDateTime updatedAt);
+
+    @Query("SELECT h FROM House h JOIN FETCH h.building WHERE h.id IN :houseIds")
+    List<House> findAllByIdWithBuilding(@Param("houseIds") List<Long> houseIds);
 }
 
 

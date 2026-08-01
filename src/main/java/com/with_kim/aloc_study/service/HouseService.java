@@ -173,6 +173,28 @@ public class HouseService {
             throw new InvalidRequestException("metadata 형식이 올바르지 않습니다.");
         }
     }
+
+    // 매물 비교
+    @Transactional(readOnly = true)
+    public List<HouseResponse> compareHouses(List<Long> houseIds) {
+        if(houseIds == null || houseIds.isEmpty()) {
+            throw new InvalidRequestException("비교할 매물 ID를 입력하세요.");
+        }
+
+        if(houseIds.size() > 3) {
+            throw new InvalidRequestException("매물 비교는 최대 3개까지 가능합니다.");
+        }
+
+        List<House> houses = houseRepository.findAllById(houseIds);
+
+        if(houses.size() != houseIds.size()) {
+            throw new ResourceNotFoundException("존재하지 않는 매물이 포함되어 있습니다.");
+        }
+
+        return houses.stream()
+                .map(HouseResponse::from)
+                .toList();
+    }
 }
 
 

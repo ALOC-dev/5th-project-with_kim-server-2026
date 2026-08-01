@@ -144,4 +144,10 @@ public class HouseController {
         Pageable pageable = PageRequest.of(page, size);
         return houseService.searchHouses(condition, pageable);
     }
+
+    @GetMapping("/compare")
+    @Operation(summary = "비교 매물 조회", description = "houseId를 통해 최대 3개의 매물의 정보를 조회합니다.")
+    public ResponseEntity<List<HouseResponse>> compareHouses(@RequestParam List<Long> houseIds) {
+        return ResponseEntity.ok(houseService.compareHouses(houseIds));
+    }
 }
