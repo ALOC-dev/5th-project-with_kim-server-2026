@@ -2,7 +2,6 @@ package com.with_kim.aloc_study.repository;
 
 import com.with_kim.aloc_study.dto.HouseSearchFilter;
 import com.with_kim.aloc_study.entity.House;
-import com.with_kim.aloc_study.util.QueryParserClient;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;

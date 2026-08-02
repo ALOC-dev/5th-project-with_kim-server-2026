@@ -132,6 +132,10 @@ public class House{
         return building.getLongitude();
     }
 
+    public void updateDescription(String description){
+        this.description=description;
+    }
+
     public void updateMetadata(String metadataJson) {
         this.metadata = metadataJson;
         this.metadataUpdatedAt = LocalDateTime.now();

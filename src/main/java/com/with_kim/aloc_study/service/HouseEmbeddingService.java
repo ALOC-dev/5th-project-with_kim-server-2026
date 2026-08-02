@@ -1,14 +1,14 @@
 package com.with_kim.aloc_study.service;
 
 import com.with_kim.aloc_study.entity.House;
+import com.with_kim.aloc_study.infrastructure.HouseDescriptionGenerator;
 import com.with_kim.aloc_study.repository.HouseEmbeddingRepository;
 import com.with_kim.aloc_study.repository.HouseRepository;
 import com.with_kim.aloc_study.repository.NearbyInfoRepository;
 import com.with_kim.aloc_study.util.HouseFeatureTextBuilder;
-import com.with_kim.aloc_study.util.OpenAiEmbeddingClient;
+import com.with_kim.aloc_study.infrastructure.OpenAiEmbeddingClient;
 import com.with_kim.aloc_study.util.VectorUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +25,7 @@ public class HouseEmbeddingService {
     private final HouseFeatureTextBuilder houseFeatureTextBuilder;
     private final OpenAiEmbeddingClient embeddingClient;
     private final HouseEmbeddingRepository embeddingRepository;
-
+    private final HouseDescriptionGenerator descriptionGenerator;
     //전체 매물의 feature_embedding을 생성
     @Transactional
     public int rebuildAll(){
@@ -39,6 +39,14 @@ public class HouseEmbeddingService {
             List<String> texts=part.stream()
                     .map(h->houseFeatureTextBuilder.build(h,nearbyInfoRepository.findFor(h.getBuilding())))
                     .toList();
+
+            //description없는 매물 ai로 생성
+            for(int j=0;j<part.size();j++){
+                House h=part.get(j);
+                if(h.getDescription()==null){
+                    h.updateDescription(descriptionGenerator.generate(texts.get(j)));
+                }
+            }
 
             //배치 임베딩
             List<List<Double>> vectors=embeddingClient.embedAll(texts);
