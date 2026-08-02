@@ -34,7 +34,8 @@ public record HouseResponse(
         Double depositRecoveryRate,
         java.time.LocalDateTime analysisUpdatedAt,
         MetadataDto metadata,
-        List<String>imageUrls
+        List<String>imageUrls,
+        Long viewCount
 ) {
     public static HouseResponse from(House house) {
         MetadataDto metadata = null;
@@ -74,7 +75,8 @@ public record HouseResponse(
                 house.getDepositRecoveryRate(),
                 house.getAnalysisUpdatedAt(),
                 metadata,
-                house.getImageUrls()
+                house.getImageUrls(),
+                house.getViewCount()
         );
     }
 }

@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -100,6 +101,10 @@ public class House{
 
     @Column(name = "analysis_updated_at")
     private LocalDateTime analysisUpdatedAt;
+
+    @Column(nullable = false) //조회수
+    @ColumnDefault("0")
+    private Long viewCount = 0L;
 
     public List<String> getImageUrls() {
         return Stream.of(image1Url, image2Url, image3Url)
