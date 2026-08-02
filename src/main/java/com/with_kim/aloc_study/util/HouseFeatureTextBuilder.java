@@ -139,8 +139,27 @@ public class HouseFeatureTextBuilder {
         }
 
         //치안, cctv
-        if (nearby.cctvCount() != null && nearby.cctvCount() > 0) {
+        boolean hasCctv=nearby.cctvCount()!=null && nearby.cctvCount() > 0;
+        boolean hasPolice = nearby.policeCount() != null && nearby.policeCount() > 0;
+        if (hasCctv && hasPolice) {
+            parts.add("CCTV와 경찰서 있는 치안 좋은 안전한");
+        } else if (hasCctv) {
             parts.add("CCTV 있는 치안 좋은 안전한");
+        } else if (hasPolice) {
+            parts.add("경찰서 인근 치안 좋은");
+        }
+
+        //역세권
+        if(nearby.nearestSubwayMeters()!=null){
+            if (nearby.nearestSubwayName() != null) {
+                parts.add(nearby.nearestSubwayName() + " 인근");
+            }
+            if(nearby.nearestSubwayMeters()<=500){
+                parts.add("역세권 지하철 가까운");
+            }
+            else{
+                parts.add("지하철 이용권");
+            }
         }
 
         return String.join(", ", parts);
