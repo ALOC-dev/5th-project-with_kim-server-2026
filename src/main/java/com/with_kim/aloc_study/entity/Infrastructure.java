@@ -35,7 +35,8 @@ public class Infrastructure{
 
     public enum InfrastructureCategory{
         CCTV,
-        CAMPUS
+        SUBWAY,
+        POLICE
     } //카카오맵으로 표시 불가능한 것만 지정
 
     @Column(columnDefinition = "geometry(Point,4326)")

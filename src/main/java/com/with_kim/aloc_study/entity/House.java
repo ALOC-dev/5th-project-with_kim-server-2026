@@ -2,6 +2,7 @@ package com.with_kim.aloc_study.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -28,6 +29,9 @@ public class House{
 
     @OneToMany(mappedBy = "house")
     private List<Submission> submissions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "house")
+    private List<VerifiedAddress> verifiedAddresses = new ArrayList<>();
 
     private Long price; //매매가
     private Long deposit; //보증금
@@ -165,5 +169,59 @@ public class House{
         this.estimatedRecoverableDeposit = estimatedRecoverableDeposit;
         this.depositRecoveryRate = depositRecoveryRate;
         this.analysisUpdatedAt = analysisUpdatedAt == null ? LocalDateTime.now() : analysisUpdatedAt;
+    }
+
+    void addVerifiedAddress(VerifiedAddress verifiedAddress) {
+        if (!verifiedAddresses.contains(verifiedAddress)) {
+            verifiedAddresses.add(verifiedAddress);
+        }
+    }
+
+    void removeVerifiedAddress(VerifiedAddress verifiedAddress) {
+        verifiedAddresses.remove(verifiedAddress);
+    }
+
+    public static House create(
+            Building building,
+            Long price,
+            Long deposit,
+            Long monthlyRent,
+            Double area,
+            Integer roomNumber,
+            Integer toilet,
+            Long managementFee,
+            ContractType contractType,
+            Integer floor,
+            Direction direction,
+            String description,
+            String metadata,
+            List<String> imageUrls
+    ) {
+        House house = new House();
+        house.building = building;
+        house.price = price;
+        house.deposit = deposit;
+        house.monthlyRent = monthlyRent;
+        house.area = area;
+        house.roomNumber = roomNumber;
+        house.toilet = toilet;
+        house.managementFee = managementFee;
+        house.contractType = contractType;
+        house.floor = floor;
+        house.direction = direction;
+        house.description = description;
+        house.metadata = metadata;
+        if (imageUrls != null) {
+            if (!imageUrls.isEmpty()) {
+                house.image1Url = imageUrls.get(0);
+            }
+            if (imageUrls.size() > 1) {
+                house.image2Url = imageUrls.get(1);
+            }
+            if (imageUrls.size() > 2) {
+                house.image3Url = imageUrls.get(2);
+            }
+        }
+        return house;
     }
 }

@@ -47,7 +47,7 @@ public class WishListService {
         Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
 
-        return wishListRepository.findByUser_Id(userId)
+        return wishListRepository.findByUserIdWithHouse(userId)
                 .stream()
                 .map(WishListResponse::from)
                 .toList();

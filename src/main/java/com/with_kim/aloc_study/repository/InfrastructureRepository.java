@@ -32,5 +32,20 @@ public interface InfrastructureRepository extends JpaRepository<Infrastructure, 
             nativeQuery = true)
     List<Infrastructure> findNearbyByHouseId(@Param("houseId") Long houseId,
                                              @Param("radiusMeters") Double radiusMeters);
+
+    @Query(value = """
+    SELECT COUNT(*) FROM infrastructures i
+    WHERE i.category = :category
+    AND ST_DWithin(
+        i.location::geography,
+        ST_SetSRID(ST_MakePoint(:lng, :lat), 4326)::geography,
+        :radiusMeters
+    )
+    """,
+            nativeQuery = true)
+    int countByCategoryWithinRadius(@Param("category") String category,
+                                    @Param("lat") Double lat,
+                                    @Param("lng") Double lng,
+                                    @Param("radiusMeters") Double radiusMeters);
 }
 

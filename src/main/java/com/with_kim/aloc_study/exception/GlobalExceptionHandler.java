@@ -4,28 +4,51 @@ import com.with_kim.aloc_study.dto.ResultDto;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import org.slf4j.Logger;
+
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    // 걍 일반적인 예외
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ResultDto> handleAllExceptions(Exception e) {
-        logger.error("An unexpected error occured : {}", e.getMessage());
+    // @Valid 요청 검증 실패
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ResultDto> handleValidationException(MethodArgumentNotValidException e) {
+        String message = e.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+
+        logger.error("Validation failed : {}", message);
 
         ResultDto resultDto = ResultDto.builder()
                 .success(false)
-                .message("Unexpected Error : " + e.getMessage())
+                .message(message)
                 .code(HttpStatus.BAD_REQUEST.value())
                 .build();
 
         return new ResponseEntity<>(resultDto, HttpStatus.BAD_REQUEST);
+    }
+
+    // 서버 상태 오류
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ResultDto> handleIllegalStateException(IllegalStateException e) {
+        logger.error("IllegalStateException : {}", e.getMessage(), e);
+
+        ResultDto resultDto = ResultDto.builder()
+                .success(false)
+                .message("Unexpected Error : " + e.getMessage())
+                .code(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .build();
+
+        return new ResponseEntity<>(resultDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     //카카오맵 API 오류

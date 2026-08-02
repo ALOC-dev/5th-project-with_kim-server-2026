@@ -1,6 +1,7 @@
 package com.with_kim.aloc_study.controller;
 
 import com.with_kim.aloc_study.dto.HouseSearchCondition;
+import com.with_kim.aloc_study.dto.request.HouseCreateRequest;
 import com.with_kim.aloc_study.dto.response.HouseResponse;
 import com.with_kim.aloc_study.dto.response.HouseSchoolDistanceResponse;
 import com.with_kim.aloc_study.dto.response.InfrastructureResponse;
@@ -10,10 +11,14 @@ import com.with_kim.aloc_study.service.InfrastructureService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +31,20 @@ public class HouseController {
 
     private final HouseService houseService;
     private final InfrastructureService infrastructureService;
+
+    @Operation(summary = "매물 등록", description = "인증된 사용자가 매물을 등록합니다.")
+    @PostMapping
+    public ResponseEntity<HouseResponse> createHouse(
+            @RequestBody @Valid HouseCreateRequest request,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+        HouseResponse response = houseService.createHouse(userId, request);
+
+        houseService.updateHouseMetadataAfterCreate(response.houseId()); //등록 트랜잭션 실행 완료 후 Metadata 갱신
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     @Operation(summary = "매물 전체 목록 조회", description = "등록된 모든 매물을 페이지 단위로 조회합니다.")
     @GetMapping
@@ -107,6 +126,8 @@ public class HouseController {
             @Parameter(description = "반경 내 최소 카페 개수") @RequestParam(required = false) Integer minCafe,
             @Parameter(description = "반경 내 최소 병원 개수") @RequestParam(required = false) Integer minHospital,
             @Parameter(description = "반경 내 최소 약국 개수") @RequestParam(required = false) Integer minPharmacy,
+            @Parameter(description = "반경 내 최소 경찰서/지구대/파출소 개수") @RequestParam(required = false) Integer minPolice,
+            @Parameter(description = "반경 내 최소 CCTV 개수") @RequestParam(required = false) Integer minCctv,
 
             @Parameter(description = "정렬 기준 (PRICE_ASC, PRICE_DESC, AREA_ASC, AREA_DESC, FLOOR_ASC, FLOOR_DESC)")
             @RequestParam(required = false, defaultValue = "PRICE_ASC") String sort,
@@ -121,6 +142,7 @@ public class HouseController {
                 schoolBuildingId, maxDistanceFromSchool,
                 minMart, minConvenienceStore, minParking, minSubway, minBank,
                 minPO, minRestaurant, minCafe, minHospital, minPharmacy,
+                minPolice, minCctv,
                 sort
         );
 

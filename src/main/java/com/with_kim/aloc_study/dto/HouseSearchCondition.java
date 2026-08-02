@@ -39,6 +39,8 @@ public record HouseSearchCondition(
         Integer minCafe,
         Integer minHospital,
         Integer minPharmacy,
+        Integer minPolice,
+        Integer minCctv,
 
         // 정렬 순서
         String sort

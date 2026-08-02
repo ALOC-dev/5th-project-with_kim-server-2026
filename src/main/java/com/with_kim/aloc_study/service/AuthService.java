@@ -57,6 +57,7 @@ public class AuthService {
                     Users newUser = new Users();
                     newUser.setLoginId(loginId);
                     newUser.setPassword(passwordEncoder.encode("KAKAO_USER"));
+                    newUser.setRole(Users.Role.USER);
                     newUser.setUsername(username);
 
                     return userRepository.save(newUser);
@@ -121,6 +122,6 @@ public class AuthService {
             );
         }
 
-        return new LoginResponse(user.getId(), accessToken, refreshToken, "Bearer");
+        return new LoginResponse(user.getId(), user.getUsername(), accessToken, refreshToken, "Bearer");
     }
 }
