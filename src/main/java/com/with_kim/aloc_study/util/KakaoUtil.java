@@ -34,8 +34,6 @@ public class KakaoUtil {
             KaKaoResponse.OAuthToken oAuthToken =
                     objectMapper.readValue(responseBody, KaKaoResponse.OAuthToken.class);
 
-            log.info("oAuthToken : " + oAuthToken.getAccess_token());
-
             return oAuthToken;
         } catch (JsonProcessingException e) {
             throw new KakaoApiException(HttpStatus.BAD_GATEWAY, "카카오 토큰 응답 파싱 실패");

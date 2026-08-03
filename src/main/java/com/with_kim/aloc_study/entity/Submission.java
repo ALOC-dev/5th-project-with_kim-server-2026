@@ -136,6 +136,11 @@ public class Submission {
         return user == null ? null : user.getId();
     }
 
+    public void removeUser() {
+        this.user = null;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public enum LeaseType {
         JEONSE,  // 전세 — 현재 유일하게 분석 지원
         WOLSE    // 월세 — 접수 시 400으로 거부 (향후 지원 예정)
