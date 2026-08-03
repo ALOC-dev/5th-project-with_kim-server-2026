@@ -90,6 +90,8 @@ public class QHouse extends EntityPathBase<House> {
 
     public final ListPath<VerifiedAddress, QVerifiedAddress> verifiedAddresses = this.<VerifiedAddress, QVerifiedAddress>createList("verifiedAddresses", VerifiedAddress.class, QVerifiedAddress.class, PathInits.DIRECT2);
 
+    public final NumberPath<Long> viewCount = createNumber("viewCount", Long.class);
+
     public QHouse(String variable) {
         this(House.class, forVariable(variable), INITS);
     }

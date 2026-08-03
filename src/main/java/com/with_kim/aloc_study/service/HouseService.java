@@ -16,6 +16,7 @@ import com.with_kim.aloc_study.repository.HouseQueryRepository;
 import com.with_kim.aloc_study.repository.HouseRepository;
 import com.with_kim.aloc_study.repository.UserRepository;
 import com.with_kim.aloc_study.repository.projection.HouseSchoolDistanceProjection;
+import com.with_kim.aloc_study.util.HouseViewCountUpdater;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +36,7 @@ public class HouseService {
     private final HouseQueryRepository houseQueryRepository;
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
+    private final HouseViewCountUpdater viewCountUpdater;
 
     public Page<HouseResponse> getAllHouses(Pageable pageable) {
         return houseRepository.findAllWithBuilding(pageable)
@@ -47,7 +49,7 @@ public class HouseService {
                 .orElseThrow(() -> new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
 
         metadataService.updateMetadataIfNeeded(house);
-
+        viewCountUpdater.increase(houseId);
         return HouseResponse.from(house);
     }
 

@@ -154,6 +154,7 @@ public interface HouseRepository extends JpaRepository<House, Long> {
         CASE WHEN :sort = 'AREA_DESC'  THEN h.area  END DESC,
         CASE WHEN :sort = 'FLOOR_ASC'  THEN h.floor END ASC,
         CASE WHEN :sort = 'FLOOR_DESC' THEN h.floor END DESC,
+        CASE WHEN :sort = 'VIEW_DESC' THEN h.view_count END DESC,
         h.id ASC
     LIMIT :limit OFFSET :offset
     """,
@@ -175,6 +176,11 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     void updateMetadata(@Param("houseId") Long houseId,
                         @Param("metadata") String metadata,
                         @Param("updatedAt") LocalDateTime updatedAt);
+
+    @Modifying //조회수 증가
+    @Query("UPDATE House h SET h.viewCount = h.viewCount + 1 WHERE h.id = :houseId")
+    void increaseViewCount(@Param("houseId") Long houseId);
+}
 
     @Query("SELECT h FROM House h JOIN FETCH h.building WHERE h.id IN :houseIds")
     List<House> findAllByIdWithBuilding(@Param("houseIds") List<Long> houseIds);

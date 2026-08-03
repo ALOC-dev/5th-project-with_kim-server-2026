@@ -33,6 +33,7 @@ public interface InfrastructureRepository extends JpaRepository<Infrastructure, 
     List<Infrastructure> findNearbyByHouseId(@Param("houseId") Long houseId,
                                              @Param("radiusMeters") Double radiusMeters);
 
+    //좌표, 반경 지정하고 특정 카테고리의 인프라 개수 반환
     @Query(value = """
     SELECT COUNT(*) FROM infrastructures i
     WHERE i.category = :category
