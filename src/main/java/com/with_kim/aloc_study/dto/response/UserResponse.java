@@ -27,7 +27,7 @@ public record UserResponse(
                 user.getPreferredJeonse(),
                 user.getBudget(),
                 user.getNotificationEnabled(),
-                user.getRole().name()
+                user.getRole() == null ? Users.Role.USER.name() : user.getRole().name()
         );
     }
 }

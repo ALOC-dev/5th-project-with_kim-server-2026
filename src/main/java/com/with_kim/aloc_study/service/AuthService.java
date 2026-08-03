@@ -63,6 +63,10 @@ public class AuthService {
                     return userRepository.save(newUser);
                 });
 
+        if (user.getRole() == null) {
+            user.setRole(Users.Role.USER);
+        }
+
         return issueLoginToken(user);
     }
 
