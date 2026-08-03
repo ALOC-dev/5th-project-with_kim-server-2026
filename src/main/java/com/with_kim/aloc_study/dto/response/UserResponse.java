@@ -9,9 +9,9 @@ public record UserResponse(
         String department,
         Long preferredSchoolBuildingId,
         Long preferredDeposit,
+        Long preferredMonthlyRent,
+        Long preferredJeonse,
         Long budget,
-        Boolean prefersMonthlyRent,
-        Boolean prefersJeonse,
         Boolean notificationEnabled,
         String role
 ) {
@@ -23,9 +23,9 @@ public record UserResponse(
                 user.getDepartment(),
                 user.getPreferredSchoolBuildingId(),
                 user.getPreferredDeposit(),
+                user.getPreferredMonthlyRent(),
+                user.getPreferredJeonse(),
                 user.getBudget(),
-                user.getPrefersMonthlyRent(),
-                user.getPrefersJeonse(),
                 user.getNotificationEnabled(),
                 user.getRole().name()
         );

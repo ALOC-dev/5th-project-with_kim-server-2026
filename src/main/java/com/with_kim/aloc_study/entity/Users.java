@@ -45,14 +45,19 @@ public class Users {
 
     private Long preferredSchoolBuildingId;
 
+    // 선호 보증금 액수
     private Long preferredDeposit;
 
+    // 선호 월세 액수
+    private Long preferredMonthlyRent;
+
+    // 선호 전세 액수
+    private Long preferredJeonse;
+
+    // 가용 예산
     private Long budget;
 
-    private Boolean prefersMonthlyRent;
-
-    private Boolean prefersJeonse;
-
+    // 알람 허용
     private Boolean notificationEnabled;
 
     @OneToMany(mappedBy = "user")
