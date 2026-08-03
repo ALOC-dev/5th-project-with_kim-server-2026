@@ -120,6 +120,8 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     AND (:minCafe IS NULL OR (h.metadata::jsonb->>'cafeCount')::int >= :minCafe)
     AND (:minHospital IS NULL OR (h.metadata::jsonb->>'hospitalCount')::int >= :minHospital)
     AND (:minPharmacy IS NULL OR (h.metadata::jsonb->>'pharmacyCount')::int >= :minPharmacy)
+    AND (:minPolice IS NULL OR (h.metadata::jsonb->>'policeCount')::int >= :minPolice)
+    AND (:minCctv IS NULL OR (h.metadata::jsonb->>'cctvCount')::int >= :minCctv)
     """,
             nativeQuery = true)
     List<Long> findByIdsWithMetadataCondition(
@@ -133,7 +135,9 @@ public interface HouseRepository extends JpaRepository<House, Long> {
             @Param("minRestaurant") Integer minRestaurant,
             @Param("minCafe") Integer minCafe,
             @Param("minHospital") Integer minHospital,
-            @Param("minPharmacy") Integer minPharmacy);
+            @Param("minPharmacy") Integer minPharmacy,
+            @Param("minPolice") Integer minPolice,
+            @Param("minCctv") Integer minCctv);
 
     //조회
     @Query(value = """

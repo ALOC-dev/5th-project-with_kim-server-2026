@@ -195,6 +195,13 @@ public class HouseService {
                 .map(HouseResponse::from)
                 .toList();
     }
+
+    //House 등록 후 Metadata 채우기
+    public void updateHouseMetadataAfterCreate(Long houseId) {
+        House house = houseRepository.findByIdWithBuilding(houseId)
+                .orElseThrow(() -> new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
+        metadataService.updateMetadataIfNeeded(house);
+    }
 }
 
 

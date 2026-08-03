@@ -1,4 +1,4 @@
-package com.with_kim.aloc_study.util;
+package com.with_kim.aloc_study.infrastructure;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +21,7 @@ public class QueryParserClient {
     private final String model;
 
     public QueryParserClient(@Qualifier("openAiRestClient") RestClient restClient,
-                             @Value("${openai.chat-model:gpt-5.4-nano}") String model){
+                             @Value("${openai.parser-model}") String model){
         this.restClient=restClient;
         this.model=model;
     }

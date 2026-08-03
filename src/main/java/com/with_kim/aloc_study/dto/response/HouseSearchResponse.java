@@ -8,7 +8,7 @@ public record HouseSearchResponse(
         Long id, String contractType, Long price,Long managementFee,
         Integer roomNumber, Integer floor, Double area, String direction,
         String address,Double latitude, Double longitude, Integer constructionYear,Integer campusDistanceMeters,
-        Integer campusWalkMinutes, String description
+        Integer campusWalkMinutes,String nearestSubwayName, Integer subwayDistanceMeters, String description
 ) {
     public static HouseSearchResponse from(House h, NearbyInfo nearby){
         Building b=h.getBuilding();
@@ -27,6 +27,8 @@ public record HouseSearchResponse(
                 b.getConstructionYear(),
                 nearby != null ? nearby.nearestCampusMeters() : null,
                 nearby != null ? nearby.nearestCampusMinutes() : null,
+                nearby !=null ? nearby.nearestSubwayName() : null,
+                nearby !=null ? nearby.nearestSubwayMeters():null,
                 h.getDescription()
         );
     }
