@@ -56,6 +56,9 @@ public class House{
     private Direction direction;
     private Integer floor;
 
+    @Column(name = "source_key", unique = true)
+    private String sourceKey;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String metadata;
@@ -141,9 +144,43 @@ public class House{
         return building.getLongitude();
     }
 
+    public void updateDescription(String description){
+        this.description=description;
+    }
+
     public void updateMetadata(String metadataJson) {
         this.metadata = metadataJson;
         this.metadataUpdatedAt = LocalDateTime.now();
+    }
+
+    public static House fromSeoulRtms(
+            Building building,
+            Long price,
+            Double area,
+            Integer floor,
+            String sourceKey,
+            String description,
+            String metadata
+    ) {
+        House house = new House();
+        house.building = building;
+        house.price = price;
+        house.area = area;
+        house.roomNumber = 1;
+        house.toilet = 1;
+        house.managementFee = 0L;
+        house.floor = floor;
+        house.bldg = 0;
+        house.unit = 0;
+        house.number = sourceKey == null ? null : Integer.toUnsignedLong(sourceKey.hashCode());
+        house.contractType = ContractType.SALE;
+        house.direction = Direction.SOUTH;
+        house.sourceKey = sourceKey;
+        house.description = description;
+        house.metadata = metadata;
+        house.metadataUpdatedAt = LocalDateTime.now();
+
+        return house;
     }
 
     public void updateAnalysisSummary(

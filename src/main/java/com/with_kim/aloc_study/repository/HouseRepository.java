@@ -17,6 +17,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface HouseRepository extends JpaRepository<House, Long> {
+    boolean existsBySourceKey(String sourceKey);
+
     //모든 매물 찾기
     @Query(value = "SELECT h FROM House h JOIN FETCH h.building",
             countQuery = "SELECT COUNT(h) FROM House h")
@@ -180,6 +182,9 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     void increaseViewCount(@Param("houseId") Long houseId);
 }
 
+    @Query("SELECT h FROM House h JOIN FETCH h.building WHERE h.id IN :houseIds")
+    List<House> findAllByIdWithBuilding(@Param("houseIds") List<Long> houseIds);
+}
 
 
 

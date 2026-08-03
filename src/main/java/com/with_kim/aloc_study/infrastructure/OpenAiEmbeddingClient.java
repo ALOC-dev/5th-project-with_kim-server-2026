@@ -1,9 +1,8 @@
-package com.with_kim.aloc_study.util;
+package com.with_kim.aloc_study.infrastructure;
 
 import com.with_kim.aloc_study.exception.EmbeddingException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;

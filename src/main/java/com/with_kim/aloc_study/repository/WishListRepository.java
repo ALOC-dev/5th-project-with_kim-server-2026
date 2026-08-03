@@ -17,6 +17,8 @@ public interface WishListRepository extends JpaRepository<WishList, Long> {
 
     void deleteByUser_IdAndHouse_Id(Long userId, Long houseId);
 
+    void deleteByUser_Id(Long userId);
+
     @Query("""
       SELECT w
       FROM WishList w
