@@ -182,10 +182,6 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     void increaseViewCount(@Param("houseId") Long houseId);
 }
 
-    @Query("SELECT h FROM House h JOIN FETCH h.building WHERE h.id IN :houseIds")
-    List<House> findAllByIdWithBuilding(@Param("houseIds") List<Long> houseIds);
-}
-
 
 
 
