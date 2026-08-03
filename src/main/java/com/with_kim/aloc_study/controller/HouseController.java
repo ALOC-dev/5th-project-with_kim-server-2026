@@ -2,6 +2,7 @@ package com.with_kim.aloc_study.controller;
 
 import com.with_kim.aloc_study.dto.HouseSearchCondition;
 import com.with_kim.aloc_study.dto.request.HouseCreateRequest;
+import com.with_kim.aloc_study.dto.request.HouseUpdateRequest;
 import com.with_kim.aloc_study.dto.response.HouseResponse;
 import com.with_kim.aloc_study.dto.response.HouseSchoolDistanceResponse;
 import com.with_kim.aloc_study.dto.response.InfrastructureResponse;
@@ -155,4 +156,42 @@ public class HouseController {
     public ResponseEntity<List<HouseResponse>> compareHouses(@RequestParam List<Long> houseIds) {
         return ResponseEntity.ok(houseService.compareHouses(houseIds));
     }
+
+    @GetMapping("/my")
+    @Operation(summary = "내가 등록한 매물 조회", description = "현재 로그인한 AGENT가 등록한 매물을 조회합니다.")
+    public Page<HouseResponse> getMyHouses(
+            Authentication authentication,
+            @Parameter(description = "페이지 번호 (0부터 시작)") @RequestParam(required = false, defaultValue = "0") int page,
+            @Parameter(description = "페이지 크기") @RequestParam(required = false, defaultValue = "20") int size
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+        Pageable pageable = PageRequest.of(page, size);
+
+        return houseService.getMyHouses(userId, pageable);
+    }
+
+    @PatchMapping("/{houseId}")
+    @Operation(summary = "내가 등록한 매물 수정", description = "현재 로그인한 AGENT가 등록한 매물을 수정합니다.")
+    public HouseResponse updateMyHouse(
+            @Parameter(description = "매물 ID") @PathVariable Long houseId,
+            @RequestBody HouseUpdateRequest request,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+
+        return houseService.updateMyHouse(userId, houseId, request);
+    }
+
+    @DeleteMapping("/{houseId}")
+    @Operation(summary = "내가 등록한 매물 삭제", description = "현재 로그인한 AGENT가 등록한 매물을 삭제합니다.")
+    public ResponseEntity<Void> deleteMyHouse(
+            @Parameter(description = "매물 ID") @PathVariable Long houseId,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+        houseService.deleteMyHouse(userId, houseId);
+
+        return ResponseEntity.noContent().build();
+    }
+
 }

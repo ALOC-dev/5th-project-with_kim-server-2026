@@ -10,4 +10,6 @@ public interface VerifiedAddressRepository extends JpaRepository<VerifiedAddress
     List<VerifiedAddress> findAllByUserIdOrderByAddressOrderAsc(Long userId);
 
     void deleteAllByUserId(Long userId);
+
+    void deleteByHouse_Id(Long houseId);
 }
