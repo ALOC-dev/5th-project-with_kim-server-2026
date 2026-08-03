@@ -4,6 +4,7 @@ import com.with_kim.aloc_study.dto.ResultDto;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -133,6 +134,19 @@ public class GlobalExceptionHandler {
                 .build();
 
         return new ResponseEntity<>(resultDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ResultDto> handleAccessDenied(AccessDeniedException e) {
+        logger.error("AccessDeniedException : {}", e.getMessage());
+
+        ResultDto resultDto = ResultDto.builder()
+                .success(false)
+                .message("접근 권한이 없습니다.")
+                .code(HttpStatus.FORBIDDEN.value())
+                .build();
+
+        return new ResponseEntity<>(resultDto, HttpStatus.FORBIDDEN);
     }
 
     // 임베딩 API 예외

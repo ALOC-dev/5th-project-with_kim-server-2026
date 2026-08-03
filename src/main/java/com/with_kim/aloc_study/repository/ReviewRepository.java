@@ -14,6 +14,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     void deleteByUser_Id(long userId);
 
+    void deleteByHouse_Id(long houseId);
+
     boolean existsByUser_IdAndHouse_Id(long userId, long houseId);
 
     Optional<Review> findByIdAndUser_Id(long reviewId, long userId);
