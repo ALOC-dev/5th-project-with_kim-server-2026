@@ -5,11 +5,9 @@ public record UserUpdateRequest(
         String department,
         Long preferredSchoolBuildingId,
         Long preferredDeposit,
+        Long preferredMonthlyRent,
+        Long preferredJeonse,
         Long budget,
-        Boolean prefersMonthlyRent,
-        Boolean prefersJeonse,
-        Boolean notificationEnabled,
-        String newPassword,
-        String confirmNewPassword
+        Boolean notificationEnabled
 ) {
 }

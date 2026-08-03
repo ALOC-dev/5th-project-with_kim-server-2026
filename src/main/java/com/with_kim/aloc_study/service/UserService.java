@@ -73,24 +73,16 @@ public class UserService {
             user.setBudget(request.budget());
         }
 
-        if (request.prefersMonthlyRent() != null) {
-            user.setPrefersMonthlyRent(request.prefersMonthlyRent());
+        if (request.preferredMonthlyRent() != null) {
+            user.setPreferredMonthlyRent(request.preferredMonthlyRent());
         }
 
-        if (request.prefersJeonse() != null) {
-            user.setPrefersJeonse(request.prefersJeonse());
+        if (request.preferredJeonse() != null) {
+            user.setPreferredJeonse(request.preferredJeonse());
         }
 
         if (request.notificationEnabled() != null) {
             user.setNotificationEnabled(request.notificationEnabled());
-        }
-
-        if (hasText(request.newPassword()) || hasText(request.confirmNewPassword())) {
-            if (!hasText(request.newPassword()) || !request.newPassword().equals(request.confirmNewPassword())) {
-                throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-            }
-
-            user.setPassword(passwordEncoder.encode(request.newPassword()));
         }
 
         return UserResponse.from(user);
