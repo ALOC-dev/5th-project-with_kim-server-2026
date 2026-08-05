@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+
 public interface HouseRepository extends JpaRepository<House, Long> {
+
     boolean existsBySourceKey(String sourceKey);
 
     //모든 매물 찾기
@@ -156,13 +158,13 @@ public interface HouseRepository extends JpaRepository<House, Long> {
         CASE WHEN :sort = 'FLOOR_DESC' THEN h.floor END DESC,
         CASE WHEN :sort = 'VIEW_DESC' THEN h.view_count END DESC,
         h.id ASC
-    LIMIT :limit OFFSET :offset
+    LIMIT :limit
     """,
             nativeQuery = true)
     List<Long> findSortedIds(@Param("houseIds") List<Long> houseIds,
                              @Param("sort") String sort,
-                             @Param("limit") int limit,
-                             @Param("offset") long offset);
+                             @Param("limit") int limit
+    );
 
     //정렬
     @Query("SELECT h FROM House h JOIN FETCH h.building WHERE h.id IN :ids")
@@ -182,9 +184,6 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     void increaseViewCount(@Param("houseId") Long houseId);
 }
 
-    @Query("SELECT h FROM House h JOIN FETCH h.building WHERE h.id IN :houseIds")
-    List<House> findAllByIdWithBuilding(@Param("houseIds") List<Long> houseIds);
-}
 
 
 

@@ -116,7 +116,7 @@ public class House{
     }
 
     public boolean needsMetadataUpdate(){
-        if(metadata == null){
+        if(metadata == null || metadataUpdatedAt == null){ //NPE 가능성 수정(HouseCreateRequest에서 metadata 필드 빼도 됨)
             return true;
         }
 

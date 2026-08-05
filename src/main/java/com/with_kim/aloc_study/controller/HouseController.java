@@ -84,10 +84,10 @@ public class HouseController {
     @Operation(
             summary = "매물 조건 검색",
             description = "계약 유형, 가격/보증금/월세, 면적, 위치, 학교 근접도, 주변 시설 등 다양한 조건을 조합해 매물을 검색합니다. " +
-                    "모든 조건은 선택 사항이며, 조건이 없으면 전체 매물이 조회됩니다."
+                    "모든 조건은 선택 사항이며, 조건을 지정하지 않았거나 검색 결과가 500개를 초과할 경우 최대 500개만 표시됩니다."
     )
     @GetMapping("/search")
-    public Page<HouseResponse> searchHouses(
+    public List<HouseResponse> searchHouses(
             @Parameter(description = "계약 유형 (SALE: 매매, JEONSE: 전세, MONTHLY: 월세)")
             @RequestParam(required = false) String contractType,
 
@@ -130,9 +130,7 @@ public class HouseController {
             @Parameter(description = "반경 내 최소 CCTV 개수") @RequestParam(required = false) Integer minCctv,
 
             @Parameter(description = "정렬 기준 (PRICE_ASC, PRICE_DESC, AREA_ASC, AREA_DESC, FLOOR_ASC, FLOOR_DESC)")
-            @RequestParam(required = false, defaultValue = "PRICE_ASC") String sort,
-            @Parameter(description = "페이지 번호 (0부터 시작)") @RequestParam(required = false, defaultValue = "0") int page,
-            @Parameter(description = "페이지 크기") @RequestParam(required = false, defaultValue = "20") int size
+            @RequestParam(required = false, defaultValue = "PRICE_ASC") String sort
     ) {
         HouseSearchCondition condition = new HouseSearchCondition(
                 contractType, minPrice, maxPrice, minDeposit, maxDeposit,
@@ -145,9 +143,7 @@ public class HouseController {
                 minPolice, minCctv,
                 sort
         );
-
-        Pageable pageable = PageRequest.of(page, size);
-        return houseService.searchHouses(condition, pageable);
+        return houseService.searchHouses(condition);
     }
 
     @GetMapping("/compare")
