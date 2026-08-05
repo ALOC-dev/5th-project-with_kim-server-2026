@@ -82,6 +82,8 @@ public class QHouse extends EntityPathBase<House> {
 
     public final NumberPath<Integer> roomNumber = createNumber("roomNumber", Integer.class);
 
+    public final StringPath sourceKey = createString("sourceKey");
+
     public final ListPath<Submission, QSubmission> submissions = this.<Submission, QSubmission>createList("submissions", Submission.class, QSubmission.class, PathInits.DIRECT2);
 
     public final NumberPath<Integer> toilet = createNumber("toilet", Integer.class);

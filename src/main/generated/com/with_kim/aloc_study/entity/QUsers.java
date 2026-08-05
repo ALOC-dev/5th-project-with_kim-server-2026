@@ -20,11 +20,25 @@ public class QUsers extends EntityPathBase<Users> {
 
     public static final QUsers users = new QUsers("users");
 
+    public final NumberPath<Long> budget = createNumber("budget", Long.class);
+
+    public final StringPath department = createString("department");
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath loginId = createString("loginId");
 
+    public final BooleanPath notificationEnabled = createBoolean("notificationEnabled");
+
     public final StringPath password = createString("password");
+
+    public final NumberPath<Long> preferredDeposit = createNumber("preferredDeposit", Long.class);
+
+    public final NumberPath<Long> preferredSchoolBuildingId = createNumber("preferredSchoolBuildingId", Long.class);
+
+    public final BooleanPath prefersJeonse = createBoolean("prefersJeonse");
+
+    public final BooleanPath prefersMonthlyRent = createBoolean("prefersMonthlyRent");
 
     public final StringPath residentRegistrationError = createString("residentRegistrationError");
 

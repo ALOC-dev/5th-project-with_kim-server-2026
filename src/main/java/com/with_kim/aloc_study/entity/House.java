@@ -168,7 +168,7 @@ public class House{
         house.area = area;
         house.roomNumber = 1;
         house.toilet = 1;
-        house.managementFee = 0L;
+        house.managementFee = null;
         house.floor = floor;
         house.bldg = 0;
         house.unit = 0;
