@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface AnalysisResultRepository extends JpaRepository<AnalysisResult, Long> {
 
     Optional<AnalysisResult> findBySubmission_SubmissionId(String submissionId);
+
+    void deleteBySubmission_House_Id(Long houseId);
 }

@@ -34,6 +34,12 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     @Query("SELECT h FROM House h JOIN FETCH h.building WHERE h.id = :id")
     Optional<House> findByIdWithBuilding(@Param("id") Long id);
 
+    @Query(
+            value = "SELECT h FROM House h JOIN FETCH h.building WHERE h.users.id = :userId",
+            countQuery = "SELECT COUNT(h) FROM House h WHERE h.users.id = :userId"
+    )
+    Page<House> findByUsers_IdWithBuilding(@Param("userId") Long userId, Pageable pageable);
+
     //원형 범위 검색
     @Query(value = """
         SELECT h.* FROM houses h
@@ -183,9 +189,6 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     @Query("UPDATE House h SET h.viewCount = h.viewCount + 1 WHERE h.id = :houseId")
     void increaseViewCount(@Param("houseId") Long houseId);
 }
-
-
-
 
 
 

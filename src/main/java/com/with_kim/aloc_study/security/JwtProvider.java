@@ -42,11 +42,12 @@ public class JwtProvider {
     public String generateAccessToken(Users user) {
         Date now = new Date();
         Date expiredDate = new Date(now.getTime() + accessExpirationTime);
+        String role = user.getRole() == null ? Users.Role.USER.name() : user.getRole().name();
 
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
                 .claim("loginId", user.getLoginId())
-                .claim("role", user.getRole().name())
+                .claim("role", role)
                 .claim("type", "access")
                 .issuedAt(now)
                 .expiration(expiredDate)
@@ -57,11 +58,12 @@ public class JwtProvider {
     public String generateRefreshToken(Users user) {
         Date now = new Date();
         Date expiredDate = new Date(now.getTime() + refreshaccessExpirationTime);
+        String role = user.getRole() == null ? Users.Role.USER.name() : user.getRole().name();
 
         return Jwts.builder()
                 .subject(String.valueOf(user.getId()))
                 .claim("loginId", user.getLoginId())
-                .claim("role", user.getRole().name())
+                .claim("role", role)
                 .claim("type", "refresh")
                 .issuedAt(now)
                 .expiration(expiredDate)

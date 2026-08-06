@@ -12,4 +12,6 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     Optional<Submission> findBySubmissionId(String submissionId);
 
     List<Submission> findByUser_Id(Long userId);
+
+    void deleteByHouse_Id(Long houseId);
 }

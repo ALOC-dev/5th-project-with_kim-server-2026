@@ -25,6 +25,10 @@ public class House{
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agent_id")
+    private Users users;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "building_id")
     private Building building;
 
@@ -153,6 +157,69 @@ public class House{
         this.metadataUpdatedAt = LocalDateTime.now();
     }
 
+    public void update(
+            Building building,
+            Long price,
+            Long deposit,
+            Long monthlyRent,
+            Double area,
+            Integer roomNumber,
+            Integer toilet,
+            Long managementFee,
+            ContractType contractType,
+            Integer floor,
+            Direction direction,
+            String description,
+            String metadata,
+            List<String> imageUrls
+    ) {
+        if (building != null) {
+            this.building = building;
+        }
+        if (price != null) {
+            this.price = price;
+        }
+        if (deposit != null) {
+            this.deposit = deposit;
+        }
+        if (monthlyRent != null) {
+            this.monthlyRent = monthlyRent;
+        }
+        if (area != null) {
+            this.area = area;
+        }
+        if (roomNumber != null) {
+            this.roomNumber = roomNumber;
+        }
+        if (toilet != null) {
+            this.toilet = toilet;
+        }
+        if (managementFee != null) {
+            this.managementFee = managementFee;
+        }
+        if (contractType != null) {
+            this.contractType = contractType;
+        }
+        if (floor != null) {
+            this.floor = floor;
+        }
+        if (direction != null) {
+            this.direction = direction;
+        }
+        if (description != null) {
+            this.description = description;
+        }
+        if (metadata != null) {
+            this.metadata = metadata;
+            this.metadataUpdatedAt = LocalDateTime.now();
+        }
+        if (imageUrls != null) {
+            this.image1Url = imageUrls.isEmpty() ? null : imageUrls.get(0);
+            this.image2Url = imageUrls.size() > 1 ? imageUrls.get(1) : null;
+            this.image3Url = imageUrls.size() > 2 ? imageUrls.get(2) : null;
+        }
+    }
+
     public static House fromSeoulRtms(
             Building building,
             Long price,
@@ -221,6 +288,7 @@ public class House{
 
     public static House create(
             Building building,
+            Users users,
             Long price,
             Long deposit,
             Long monthlyRent,
@@ -237,6 +305,7 @@ public class House{
     ) {
         House house = new House();
         house.building = building;
+        house.users = users;
         house.price = price;
         house.deposit = deposit;
         house.monthlyRent = monthlyRent;

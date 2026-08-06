@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.with_kim.aloc_study.dto.HouseSearchCondition;
 import com.with_kim.aloc_study.dto.request.HouseCreateRequest;
+import com.with_kim.aloc_study.dto.request.HouseUpdateRequest;
 import com.with_kim.aloc_study.dto.response.HouseResponse;
 import com.with_kim.aloc_study.dto.response.HouseSchoolDistanceResponse;
 import com.with_kim.aloc_study.entity.Building;
@@ -11,15 +12,21 @@ import com.with_kim.aloc_study.entity.House;
 import com.with_kim.aloc_study.entity.Users;
 import com.with_kim.aloc_study.exception.InvalidRequestException;
 import com.with_kim.aloc_study.exception.ResourceNotFoundException;
+import com.with_kim.aloc_study.repository.AnalysisResultRepository;
 import com.with_kim.aloc_study.repository.BuildingRepository;
 import com.with_kim.aloc_study.repository.HouseQueryRepository;
 import com.with_kim.aloc_study.repository.HouseRepository;
+import com.with_kim.aloc_study.repository.ReviewRepository;
+import com.with_kim.aloc_study.repository.SubmissionRepository;
 import com.with_kim.aloc_study.repository.UserRepository;
+import com.with_kim.aloc_study.repository.VerifiedAddressRepository;
+import com.with_kim.aloc_study.repository.WishListRepository;
 import com.with_kim.aloc_study.repository.projection.HouseSchoolDistanceProjection;
 import com.with_kim.aloc_study.util.HouseViewCountUpdater;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +44,11 @@ public class HouseService {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final HouseViewCountUpdater viewCountUpdater;
+    private final WishListRepository wishListRepository;
+    private final ReviewRepository reviewRepository;
+    private final AnalysisResultRepository analysisResultRepository;
+    private final SubmissionRepository submissionRepository;
+    private final VerifiedAddressRepository verifiedAddressRepository;
 
     public Page<HouseResponse> getAllHouses(Pageable pageable) {
         return houseRepository.findAllWithBuilding(pageable)
@@ -133,50 +145,6 @@ public class HouseService {
         }
     }
 
-    // 매물 등록
-    @Transactional
-    public HouseResponse createHouse(Long userId, HouseCreateRequest request) {
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다. id=" + userId));
-
-        Building building = buildingRepository.findById(request.buildingId())
-                .orElseThrow(() -> new ResourceNotFoundException("건물을 찾을 수 없습니다. id=" + request.buildingId()));
-
-        House house = House.create(
-                building,
-                request.price(),
-                request.deposit(),
-                request.monthlyRent(),
-                request.area(),
-                request.roomNumber(),
-                request.toilet(),
-                request.managementFee(),
-                House.ContractType.valueOf(request.contractType()),
-                request.floor(),
-                House.Direction.valueOf(request.direction()),
-                request.description(),
-                toMetadataJson(request),
-                request.imageUrls()
-        );
-
-
-        House savedHouse = houseRepository.save(house);
-
-        return HouseResponse.from(savedHouse);
-    }
-
-    private String toMetadataJson(HouseCreateRequest request) {
-        if (request.metadata() == null) {
-            return null;
-        }
-
-        try {
-            return objectMapper.writeValueAsString(request.metadata());
-        } catch (JsonProcessingException e) {
-            throw new InvalidRequestException("metadata 형식이 올바르지 않습니다.");
-        }
-    }
-
     // 매물 비교
     @Transactional(readOnly = true)
     public List<HouseResponse> compareHouses(List<Long> houseIds) {
@@ -199,12 +167,162 @@ public class HouseService {
                 .toList();
     }
 
+    // 매물 등록
+    @Transactional
+    public HouseResponse createHouse(Long userId, HouseCreateRequest request) {
+        Users user = findUser(userId);
+        validateAgent(user);
+
+        Building building = buildingRepository.findById(request.buildingId())
+                .orElseThrow(() -> new ResourceNotFoundException("건물을 찾을 수 없습니다. id=" + request.buildingId()));
+
+        House house = House.create(
+                building,
+                user,
+                request.price(),
+                request.deposit(),
+                request.monthlyRent(),
+                request.area(),
+                request.roomNumber(),
+                request.toilet(),
+                request.managementFee(),
+                House.ContractType.valueOf(request.contractType()),
+                request.floor(),
+                House.Direction.valueOf(request.direction()),
+                request.description(),
+                toMetadataJson(request),
+                request.imageUrls()
+        );
+
+
+        House savedHouse = houseRepository.save(house);
+
+        return HouseResponse.from(savedHouse);
+    }
+
+    // 내가 등록한 매물 수정
+    @Transactional
+    public HouseResponse updateMyHouse(Long userId, Long houseId, HouseUpdateRequest request) {
+        Users user = findUser(userId);
+        validateAgent(user);
+
+        House house = houseRepository.findByIdWithBuilding(houseId)
+                .orElseThrow(() -> new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
+        validateHouseOwner(house, userId);
+
+        Building building = null;
+        if(request.buildingId() != null) {
+            building = buildingRepository.findById(request.buildingId())
+                    .orElseThrow(() -> new ResourceNotFoundException("건물을 찾을 수 없습니다. id=" + request.buildingId()));
+        }
+
+        house.update(
+                building,
+                request.price(),
+                request.deposit(),
+                request.monthlyRent(),
+                request.area(),
+                request.roomNumber(),
+                request.toilet(),
+                request.managementFee(),
+                parseContractType(request.contractType()),
+                request.floor(),
+                parseDirection(request.direction()),
+                request.description(),
+                toMetadataJson(request.metadata()),
+                request.imageUrls()
+        );
+
+        return HouseResponse.from(house);
+    }
+
+    // 내가 등록한 매물 삭제
+    @Transactional
+    public void deleteMyHouse(Long userId, Long houseId) {
+        Users user = findUser(userId);
+        validateAgent(user);
+
+        House house = houseRepository.findByIdWithBuilding(houseId)
+                .orElseThrow(() -> new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
+        validateHouseOwner(house, userId);
+
+        wishListRepository.deleteByHouse_Id(houseId);
+        reviewRepository.deleteByHouse_Id(houseId);
+        analysisResultRepository.deleteBySubmission_House_Id(houseId);
+        submissionRepository.deleteByHouse_Id(houseId);
+        verifiedAddressRepository.deleteByHouse_Id(houseId);
+        houseRepository.delete(house);
+    }
+
+    private String toMetadataJson(HouseCreateRequest request) {
+        return toMetadataJson(request.metadata());
+    }
+
+    private String toMetadataJson(Object metadata) {
+        if (metadata == null) {
+            return null;
+        }
+
+        try {
+            return objectMapper.writeValueAsString(metadata);
+        } catch (JsonProcessingException e) {
+            throw new InvalidRequestException("metadata 형식이 올바르지 않습니다.");
+        }
+    }
+
+    private Users findUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("사용자를 찾을 수 없습니다. id=" + userId));
+    }
+
+    private void validateAgent(Users user) {
+        if(user.getRole() != Users.Role.AGENT && user.getRole() != Users.Role.ADMIN) {
+            throw new AccessDeniedException("매물 등록 권한이 없습니다.");
+        }
+    }
+
+    private void validateHouseOwner(House house, Long userId) {
+        if (house.getUsers() == null || house.getUsers().getId() != userId) {
+            throw new AccessDeniedException("본인이 등록한 매물만 수정 또는 삭제할 수 있습니다.");
+        }
+    }
+
+    private House.ContractType parseContractType(String contractType) {
+        if (contractType == null) {
+            return null;
+        }
+
+        try {
+            return House.ContractType.valueOf(contractType);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestException("contractType 값이 올바르지 않습니다.");
+        }
+    }
+
+    private House.Direction parseDirection(String direction) {
+        if (direction == null) {
+            return null;
+        }
+
+        try {
+            return House.Direction.valueOf(direction);
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestException("direction 값이 올바르지 않습니다.");
+        }
+    }
+
     //House 등록 후 Metadata 채우기
     public void updateHouseMetadataAfterCreate(Long houseId) {
         House house = houseRepository.findByIdWithBuilding(houseId)
                 .orElseThrow(() -> new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
         metadataService.updateMetadataIfNeeded(house);
     }
+
+    // 등록한 매물 조회
+    @Transactional(readOnly = true)
+    public Page<HouseResponse> getMyHouses(Long userId, Pageable pageable) {
+        return houseRepository.findByUsers_IdWithBuilding(userId, pageable)
+                .map(HouseResponse::from);
+    }
+
 }
-
-
