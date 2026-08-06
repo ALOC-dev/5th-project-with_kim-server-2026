@@ -120,7 +120,7 @@ public class House{
     }
 
     public boolean needsMetadataUpdate(){
-        if(metadata == null){
+        if(metadata == null || metadataUpdatedAt == null){ //NPE 가능성 수정(HouseCreateRequest에서 metadata 필드 빼도 됨)
             return true;
         }
 
@@ -235,7 +235,7 @@ public class House{
         house.area = area;
         house.roomNumber = 1;
         house.toilet = 1;
-        house.managementFee = 0L;
+        house.managementFee = null;
         house.floor = floor;
         house.bldg = 0;
         house.unit = 0;

@@ -87,10 +87,11 @@ public class HouseService {
     }
 
     //조건 검색
-    public Page<HouseResponse> searchHouses(HouseSearchCondition condition, Pageable pageable) {
+    public List<HouseResponse> searchHouses(HouseSearchCondition condition) {
         validateSearchCondition(condition);
-        return houseQueryRepository.searchHouses(condition, pageable)
-                .map(HouseResponse::from);
+        return houseQueryRepository.searchHouses(condition).stream()
+                .map(HouseResponse::from)
+                .toList();
     }
 
     private void validateSearchCondition(HouseSearchCondition condition) {
