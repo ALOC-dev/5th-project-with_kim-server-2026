@@ -51,14 +51,23 @@ public class HouseService {
     private final VerifiedAddressRepository verifiedAddressRepository;
 
     public Page<HouseResponse> getAllHouses(Pageable pageable) {
-        return houseRepository.findAllWithBuilding(pageable)
+        return houseRepository.findAllActiveWithBuilding(pageable)
                 .map(HouseResponse::from);
     }
 
     @Transactional(readOnly = true)
-    public HouseResponse getHouse(Long houseId) {
+    public HouseResponse getHouse(Long houseId, Long requesterId) {
         House house = houseRepository.findByIdWithBuilding(houseId)
                 .orElseThrow(() -> new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
+
+        boolean isActive = house.getListingStatus() == House.ListingStatus.ACTIVE;
+        boolean isOwner = requesterId != null
+                && house.getUsers() != null
+                && house.getUsers().getId() == requesterId;
+
+        if (!isActive && !isOwner) {
+            throw new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId);
+        }
 
         metadataService.updateMetadataIfNeeded(house);
         viewCountUpdater.increase(houseId);
@@ -156,7 +165,7 @@ public class HouseService {
             throw new InvalidRequestException("매물 비교는 최대 3개까지 가능합니다.");
         }
 
-        List<House> houses = houseRepository.findAllById(houseIds);
+        List<House> houses = houseRepository.findAllActiveByIdInWithBuilding(houseIds);
 
         if(houses.size() != houseIds.size()) {
             throw new ResourceNotFoundException("존재하지 않는 매물이 포함되어 있습니다.");
@@ -254,6 +263,19 @@ public class HouseService {
         houseRepository.delete(house);
     }
 
+    //내가 등록한 매물 노출 상태 변경
+    @Transactional
+    public void updateMyHouseListingStatus(Long userId, Long houseId, String listingStatus) {
+        Users user = findUser(userId);
+        validateAgent(user);
+
+        House house = houseRepository.findByIdWithBuilding(houseId)
+                .orElseThrow(() -> new ResourceNotFoundException("매물을 찾을 수 없습니다. id=" + houseId));
+        validateHouseOwner(house, userId);
+
+        house.updateListingStatus(parseListingStatus(listingStatus));
+    }
+
     private String toMetadataJson(HouseCreateRequest request) {
         return toMetadataJson(request.metadata());
     }
@@ -311,6 +333,16 @@ public class HouseService {
         }
     }
 
+    private House.ListingStatus parseListingStatus(String listingStatus) {
+        try {
+            return House.ListingStatus.valueOf(listingStatus);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            throw new InvalidRequestException(
+                    "listingStatus는 ACTIVE, HIDDEN, COMPLETED 중 하나여야 합니다."
+            );
+        }
+    }
+
     //House 등록 후 Metadata 채우기
     public void updateHouseMetadataAfterCreate(Long houseId) {
         House house = houseRepository.findByIdWithBuilding(houseId)
@@ -318,7 +350,7 @@ public class HouseService {
         metadataService.updateMetadataIfNeeded(house);
     }
 
-    // 등록한 매물 조회
+    // 내가 등록한 매물 조회
     @Transactional(readOnly = true)
     public Page<HouseResponse> getMyHouses(Long userId, Pageable pageable) {
         return houseRepository.findByUsers_IdWithBuilding(userId, pageable)
