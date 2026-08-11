@@ -67,7 +67,7 @@ public class MetadataService {
                             "CCTV", lat, lng, (double) RADIUS_METERS));
 
 
-            CompletableFuture.allOf(mart, convenienceStore, parking, subway, bank, PO, restaurant, cafe, hospital, pharmacy).join();
+            CompletableFuture.allOf(mart, convenienceStore, parking, subway, bank, PO, restaurant, cafe, hospital, pharmacy, police, cctv).join();
 
             MetadataDto metadata = new MetadataDto(mart.get(), convenienceStore.get(), parking.get(), subway.get(), bank.get(),
                     PO.get(), restaurant.get(), cafe.get(), hospital.get(), pharmacy.get(), police.get(), cctv.get());

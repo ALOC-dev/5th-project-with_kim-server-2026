@@ -106,3 +106,5 @@ aws-exports.js
 scripts/
 
 src/main/resources/application.properties
+
+/src/main/generated/

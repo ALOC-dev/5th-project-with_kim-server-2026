@@ -2,6 +2,7 @@ package com.with_kim.aloc_study.controller;
 
 import com.with_kim.aloc_study.dto.HouseSearchCondition;
 import com.with_kim.aloc_study.dto.request.HouseCreateRequest;
+import com.with_kim.aloc_study.dto.request.HouseListingStatusUpdateRequest;
 import com.with_kim.aloc_study.dto.request.HouseUpdateRequest;
 import com.with_kim.aloc_study.dto.response.HouseResponse;
 import com.with_kim.aloc_study.dto.response.HouseSchoolDistanceResponse;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -60,9 +62,25 @@ public class HouseController {
     @Operation(summary = "매물 단건 조회", description = "매물 ID로 상세 정보를 조회합니다.")
     @GetMapping("/{houseId}")
     public HouseResponse getHouse(
-            @Parameter(description = "매물 ID") @PathVariable Long houseId
+            @Parameter(description = "매물 ID") @PathVariable Long houseId,
+            Authentication authentication
     ) {
-        return houseService.getHouse(houseId);
+        Long requesterId = getAgentOrAdminId(authentication);
+        return houseService.getHouse(houseId, requesterId);
+    }
+
+    private Long getAgentOrAdminId(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        }
+
+        boolean isAgentOrAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority ->
+                        authority.getAuthority().equals("ROLE_AGENT")
+                                || authority.getAuthority().equals("ROLE_ADMIN")
+                );
+
+        return isAgentOrAdmin ? Long.valueOf(authentication.getName()) : null;
     }
 
     @Operation(summary = "매물-학교 거리 조회", description = "특정 매물과 등록된 모든 학교 건물 간의 거리를 반환합니다.")
@@ -85,10 +103,10 @@ public class HouseController {
     @Operation(
             summary = "매물 조건 검색",
             description = "계약 유형, 가격/보증금/월세, 면적, 위치, 학교 근접도, 주변 시설 등 다양한 조건을 조합해 매물을 검색합니다. " +
-                    "모든 조건은 선택 사항이며, 조건이 없으면 전체 매물이 조회됩니다."
+                    "모든 조건은 선택 사항이며, 조건을 지정하지 않았거나 검색 결과가 500개를 초과할 경우 최대 500개만 표시됩니다."
     )
     @GetMapping("/search")
-    public Page<HouseResponse> searchHouses(
+    public List<HouseResponse> searchHouses(
             @Parameter(description = "계약 유형 (SALE: 매매, JEONSE: 전세, MONTHLY: 월세)")
             @RequestParam(required = false) String contractType,
 
@@ -131,9 +149,7 @@ public class HouseController {
             @Parameter(description = "반경 내 최소 CCTV 개수") @RequestParam(required = false) Integer minCctv,
 
             @Parameter(description = "정렬 기준 (PRICE_ASC, PRICE_DESC, AREA_ASC, AREA_DESC, FLOOR_ASC, FLOOR_DESC)")
-            @RequestParam(required = false, defaultValue = "PRICE_ASC") String sort,
-            @Parameter(description = "페이지 번호 (0부터 시작)") @RequestParam(required = false, defaultValue = "0") int page,
-            @Parameter(description = "페이지 크기") @RequestParam(required = false, defaultValue = "20") int size
+            @RequestParam(required = false, defaultValue = "PRICE_ASC") String sort
     ) {
         HouseSearchCondition condition = new HouseSearchCondition(
                 contractType, minPrice, maxPrice, minDeposit, maxDeposit,
@@ -146,9 +162,7 @@ public class HouseController {
                 minPolice, minCctv,
                 sort
         );
-
-        Pageable pageable = PageRequest.of(page, size);
-        return houseService.searchHouses(condition, pageable);
+        return houseService.searchHouses(condition);
     }
 
     @GetMapping("/compare")
@@ -190,6 +204,19 @@ public class HouseController {
     ) {
         Long userId = Long.valueOf(authentication.getName());
         houseService.deleteMyHouse(userId, houseId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{houseId}/status")
+    @Operation(summary = "내가 등록한 매물 공개 상태 변경", description = "현재 로그인한 AGENT가 등록한 매물의 공개 상태를 변경합니다.")
+    public ResponseEntity<Void> updateHouseListingStatus(
+            @Parameter(description = "매물 ID") @PathVariable Long houseId,
+            @RequestBody @Valid HouseListingStatusUpdateRequest request,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+        houseService.updateMyHouseListingStatus(userId, houseId, request.listingStatus());
 
         return ResponseEntity.noContent().build();
     }

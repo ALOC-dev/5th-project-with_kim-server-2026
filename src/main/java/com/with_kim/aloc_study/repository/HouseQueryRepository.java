@@ -5,9 +5,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.with_kim.aloc_study.dto.HouseSearchCondition;
 import com.with_kim.aloc_study.entity.House;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -23,11 +20,9 @@ public class HouseQueryRepository {
     private final JPAQueryFactory queryFactory;
     private final HouseRepository houseRepository;
     private static final double DEFAULT_SCHOOL_DISTANCE_METERS = 750;
+    private static final int MAX_SEARCH_RESULTS = 500;
 
-    public Page<House> searchHouses(HouseSearchCondition condition, Pageable pageable) {
-
-
-
+    public List<House> searchHouses(HouseSearchCondition condition) {
         Set<Long> houseIds = null;
 
         // 1. 기본 조건 필터링
@@ -37,6 +32,7 @@ public class HouseQueryRepository {
                     .from(house)
                     .join(house.building, building)
                     .where(
+                            house.listingStatus.eq(House.ListingStatus.ACTIVE),
                             contractTypeEq(condition.contractType()),
                             priceBetween(condition.minPrice(), condition.maxPrice()),
                             depositBetween(condition.minDeposit(), condition.maxDeposit()),
@@ -48,7 +44,7 @@ public class HouseQueryRepository {
                     )
                     .fetch());
 
-            if (houseIds.isEmpty()) return Page.empty(pageable);
+            if (houseIds.isEmpty()) return List.of();
         }
 
         // 2. 위치 필터링
@@ -69,11 +65,15 @@ public class HouseQueryRepository {
                 houseIds.retainAll(locationIds);
             }
 
-            if (houseIds.isEmpty()) return Page.empty(pageable);
+            if (houseIds.isEmpty()) return List.of();
         }
 
         if (houseIds == null) {
-            houseIds = new HashSet<>(queryFactory.select(house.id).from(house).fetch());
+            houseIds = new HashSet<>(queryFactory
+                    .select(house.id)
+                    .from(house)
+                    .where(house.listingStatus.eq(House.ListingStatus.ACTIVE))
+                    .fetch());
         }
 
         //3. 학교 건물 거리 필터링
@@ -89,7 +89,7 @@ public class HouseQueryRepository {
                 houseIds.retainAll(filtered);
             }
 
-            if (houseIds.isEmpty()) return Page.empty(pageable);
+            if (houseIds.isEmpty()) return List.of();
         }
 
         //metadata 필터링
@@ -111,20 +111,17 @@ public class HouseQueryRepository {
             );
             houseIds = new HashSet<>(filtered);
 
-            if (houseIds.isEmpty()) return Page.empty(pageable);
+            if (houseIds.isEmpty()) return List.of();
         }
 
         List<Long> idList = new ArrayList<>(houseIds);
-        long total = idList.size();
 
-        List<Long> sortedIds = houseRepository.findSortedIds(idList, condition.sort(), pageable.getPageSize(), pageable.getOffset());
+        List<Long> sortedIds = houseRepository.findSortedIds(idList, condition.sort(), MAX_SEARCH_RESULTS);
         List<House> houses = houseRepository.findAllByIdInWithBuilding(sortedIds);
 
-        Map<Long, House> houseMap = houses.stream().collect(Collectors.toMap(House::getId, h -> h));
-        List<House> orderedContent = sortedIds.stream().map(houseMap::get).toList();
         // 조회, 정렬 분리(n+1 문제)
-
-        return new PageImpl<>(orderedContent, pageable, total);
+        Map<Long, House> houseMap = houses.stream().collect(Collectors.toMap(House::getId, h -> h));
+        return sortedIds.stream().map(houseMap::get).toList();
     }
     private boolean hasBasicCondition(HouseSearchCondition condition){
         return condition.contractType() != null

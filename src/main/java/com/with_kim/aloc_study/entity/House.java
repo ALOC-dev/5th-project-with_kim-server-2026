@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -23,6 +24,10 @@ public class House{
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "agent_id")
@@ -113,6 +118,10 @@ public class House{
     @ColumnDefault("0")
     private Long viewCount = 0L;
 
+    @Enumerated(EnumType.STRING) //표시 상태
+    @Column(nullable = false)
+    private ListingStatus listingStatus = ListingStatus.ACTIVE;
+
     public List<String> getImageUrls() {
         return Stream.of(image1Url, image2Url, image3Url)
                 .filter(Objects::nonNull)
@@ -120,7 +129,7 @@ public class House{
     }
 
     public boolean needsMetadataUpdate(){
-        if(metadata == null){
+        if(metadata == null || metadataUpdatedAt == null){ //NPE 가능성 수정(HouseCreateRequest에서 metadata 필드 빼도 됨)
             return true;
         }
 
@@ -138,6 +147,12 @@ public class House{
         EAST,
         SOUTH,
         WEST
+    }
+
+    public enum ListingStatus {
+        ACTIVE,
+        HIDDEN,
+        COMPLETED
     }
 
     public Double getLatitude() {
@@ -231,11 +246,12 @@ public class House{
     ) {
         House house = new House();
         house.building = building;
+        house.users = null;
         house.price = price;
         house.area = area;
         house.roomNumber = 1;
         house.toilet = 1;
-        house.managementFee = 0L;
+        house.managementFee = null;
         house.floor = floor;
         house.bldg = 0;
         house.unit = 0;
@@ -274,6 +290,11 @@ public class House{
         this.estimatedRecoverableDeposit = estimatedRecoverableDeposit;
         this.depositRecoveryRate = depositRecoveryRate;
         this.analysisUpdatedAt = analysisUpdatedAt == null ? LocalDateTime.now() : analysisUpdatedAt;
+    }
+
+    //표시 상태 변경
+    public void updateListingStatus(ListingStatus listingStatus) {
+        this.listingStatus = listingStatus;
     }
 
     void addVerifiedAddress(VerifiedAddress verifiedAddress) {

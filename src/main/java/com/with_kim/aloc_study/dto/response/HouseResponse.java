@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.with_kim.aloc_study.dto.MetadataDto;
 import com.with_kim.aloc_study.entity.House;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record HouseResponse(
@@ -35,7 +36,9 @@ public record HouseResponse(
         java.time.LocalDateTime analysisUpdatedAt,
         MetadataDto metadata,
         List<String>imageUrls,
-        Long viewCount
+        Long viewCount,
+        LocalDateTime createdAt,
+        String listingStatus
 ) {
     public static HouseResponse from(House house) {
         MetadataDto metadata = null;
@@ -76,7 +79,9 @@ public record HouseResponse(
                 house.getAnalysisUpdatedAt(),
                 metadata,
                 house.getImageUrls(),
-                house.getViewCount()
+                house.getViewCount(),
+                house.getCreatedAt(),
+                house.getListingStatus().name()
         );
     }
 }

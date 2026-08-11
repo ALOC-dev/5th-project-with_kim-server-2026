@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+
 public interface HouseRepository extends JpaRepository<House, Long> {
+
     boolean existsBySourceKey(String sourceKey);
 
     //모든 매물 찾기
@@ -28,12 +30,44 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     @Query("SELECT h FROM House h JOIN FETCH h.building")
     List<House> findAllWithBuildingForBatch();
 
+    //모든 매물 찾기(공개된 것만)
+    @Query(
+            value = """
+        SELECT h
+        FROM House h
+        JOIN FETCH h.building
+        WHERE h.listingStatus =
+            com.with_kim.aloc_study.entity.House.ListingStatus.ACTIVE
+    """,
+            countQuery = """
+        SELECT COUNT(h)
+        FROM House h
+        WHERE h.listingStatus =
+            com.with_kim.aloc_study.entity.House.ListingStatus.ACTIVE
+    """
+    )
+    Page<House> findAllActiveWithBuilding(Pageable pageable);
+
     //ID로 매물 찾기
     @Query("SELECT h FROM House h JOIN FETCH h.building WHERE h.id = :id")
     Optional<House> findByIdWithBuilding(@Param("id") Long id);
 
+    //공개 매물 Id만 반환
+    @Query("""
+    SELECT h
+    FROM House h
+    JOIN FETCH h.building
+    WHERE h.id IN :ids
+      AND h.listingStatus =
+          com.with_kim.aloc_study.entity.House.ListingStatus.ACTIVE
+""")
+    List<House> findAllActiveByIdInWithBuilding(
+            @Param("ids") List<Long> ids
+    );
+
+    //등록한 사용자 Id로 매물 찾기
     @Query(
-            value = "SELECT h FROM House h JOIN FETCH h.building WHERE h.users.id = :userId",
+            value = "SELECT h FROM House h JOIN FETCH h.building WHERE h.users.id = :userId ORDER BY h.createdAt DESC",
             countQuery = "SELECT COUNT(h) FROM House h WHERE h.users.id = :userId"
     )
     Page<House> findByUsers_IdWithBuilding(@Param("userId") Long userId, Pageable pageable);
@@ -42,11 +76,12 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     @Query(value = """
         SELECT h.* FROM houses h
         JOIN buildings b ON h.building_id = b.id
-        WHERE ST_DWithin(
-            b.location::geography,
-            ST_SetSRID(ST_MakePoint(:centerLng, :centerLat), 4326)::geography,
-            :radiusMeters
-        )
+            WHERE ST_DWithin(
+             b.location::geography,
+             ST_SetSRID(ST_MakePoint(:centerLng, :centerLat), 4326)::geography,
+             :radiusMeters
+         )
+         AND h.listing_status = 'ACTIVE'
         """,
             nativeQuery = true)
     List<House> findAllWithinRadius(@Param("centerLng") Double centerLng,
@@ -61,8 +96,10 @@ public interface HouseRepository extends JpaRepository<House, Long> {
                 ST_MakeEnvelope(:swLng, :swLat, :neLng, :neLat, 4326),
                 b.location::geometry
             )
+            AND h.listing_status = 'ACTIVE'
             """,
             nativeQuery = true)
+
     List<House> findAllInBoundingBox(@Param("swLat") Double swLat,
                                      @Param("swLng") Double swLng,
                                      @Param("neLat") Double neLat,
@@ -78,6 +115,7 @@ public interface HouseRepository extends JpaRepository<House, Long> {
         FROM houses h
         JOIN buildings b ON h.building_id = b.id, school_buildings sb
         WHERE h.id = :houseId
+        AND h.listing_status = 'ACTIVE'
         ORDER BY distanceMeters ASC
         """,
             nativeQuery = true)
@@ -95,6 +133,7 @@ public interface HouseRepository extends JpaRepository<House, Long> {
         JOIN buildings b ON h.building_id = b.id, school_buildings sb
         WHERE sb.id = :schoolBuildingId
         AND ST_DWithin(sb.location::geography, b.location::geography, :radiusMeters)
+        AND h.listing_status = 'ACTIVE'
         ORDER BY distanceMeters ASC
         """,
             nativeQuery = true)
@@ -107,6 +146,7 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     JOIN buildings b ON h.building_id = b.id, school_buildings sb
     WHERE sb.id = :schoolBuildingId
     AND ST_DWithin(sb.location::geography, b.location::geography, :radiusMeters)
+    AND h.listing_status = 'ACTIVE'
     """,
             nativeQuery = true)
     Set<Long> findHouseIdsNearSchool(@Param("schoolBuildingId") Long schoolBuildingId,
@@ -128,6 +168,7 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     AND (:minPharmacy IS NULL OR (h.metadata::jsonb->>'pharmacyCount')::int >= :minPharmacy)
     AND (:minPolice IS NULL OR (h.metadata::jsonb->>'policeCount')::int >= :minPolice)
     AND (:minCctv IS NULL OR (h.metadata::jsonb->>'cctvCount')::int >= :minCctv)
+    AND h.listing_status = 'ACTIVE'
     """,
             nativeQuery = true)
     List<Long> findByIdsWithMetadataCondition(
@@ -145,7 +186,7 @@ public interface HouseRepository extends JpaRepository<House, Long> {
             @Param("minPolice") Integer minPolice,
             @Param("minCctv") Integer minCctv);
 
-    //조회
+    //정렬
     @Query(value = """
     SELECT h.id FROM houses h
     WHERE h.id IN (:houseIds)
@@ -162,15 +203,15 @@ public interface HouseRepository extends JpaRepository<House, Long> {
         CASE WHEN :sort = 'FLOOR_DESC' THEN h.floor END DESC,
         CASE WHEN :sort = 'VIEW_DESC' THEN h.view_count END DESC,
         h.id ASC
-    LIMIT :limit OFFSET :offset
+    LIMIT :limit
     """,
             nativeQuery = true)
     List<Long> findSortedIds(@Param("houseIds") List<Long> houseIds,
                              @Param("sort") String sort,
-                             @Param("limit") int limit,
-                             @Param("offset") long offset);
+                             @Param("limit") int limit
+    );
 
-    //정렬
+    //조회
     @Query("SELECT h FROM House h JOIN FETCH h.building WHERE h.id IN :ids")
     List<House> findAllByIdInWithBuilding(@Param("ids") List<Long> ids);
 
@@ -186,7 +227,6 @@ public interface HouseRepository extends JpaRepository<House, Long> {
     @Modifying //조회수 증가
     @Query("UPDATE House h SET h.viewCount = h.viewCount + 1 WHERE h.id = :houseId")
     void increaseViewCount(@Param("houseId") Long houseId);
-
 }
 
 
