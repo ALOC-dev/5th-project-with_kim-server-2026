@@ -32,6 +32,7 @@ public class HouseQueryRepository {
                     .from(house)
                     .join(house.building, building)
                     .where(
+                            house.listingStatus.eq(House.ListingStatus.ACTIVE),
                             contractTypeEq(condition.contractType()),
                             priceBetween(condition.minPrice(), condition.maxPrice()),
                             depositBetween(condition.minDeposit(), condition.maxDeposit()),
@@ -68,7 +69,11 @@ public class HouseQueryRepository {
         }
 
         if (houseIds == null) {
-            houseIds = new HashSet<>(queryFactory.select(house.id).from(house).fetch());
+            houseIds = new HashSet<>(queryFactory
+                    .select(house.id)
+                    .from(house)
+                    .where(house.listingStatus.eq(House.ListingStatus.ACTIVE))
+                    .fetch());
         }
 
         //3. 학교 건물 거리 필터링

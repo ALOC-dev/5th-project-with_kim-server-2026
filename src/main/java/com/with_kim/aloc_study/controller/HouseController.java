@@ -2,6 +2,7 @@ package com.with_kim.aloc_study.controller;
 
 import com.with_kim.aloc_study.dto.HouseSearchCondition;
 import com.with_kim.aloc_study.dto.request.HouseCreateRequest;
+import com.with_kim.aloc_study.dto.request.HouseListingStatusUpdateRequest;
 import com.with_kim.aloc_study.dto.request.HouseUpdateRequest;
 import com.with_kim.aloc_study.dto.response.HouseResponse;
 import com.with_kim.aloc_study.dto.response.HouseSchoolDistanceResponse;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -60,9 +62,25 @@ public class HouseController {
     @Operation(summary = "매물 단건 조회", description = "매물 ID로 상세 정보를 조회합니다.")
     @GetMapping("/{houseId}")
     public HouseResponse getHouse(
-            @Parameter(description = "매물 ID") @PathVariable Long houseId
+            @Parameter(description = "매물 ID") @PathVariable Long houseId,
+            Authentication authentication
     ) {
-        return houseService.getHouse(houseId);
+        Long requesterId = getAgentOrAdminId(authentication);
+        return houseService.getHouse(houseId, requesterId);
+    }
+
+    private Long getAgentOrAdminId(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        }
+
+        boolean isAgentOrAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority ->
+                        authority.getAuthority().equals("ROLE_AGENT")
+                                || authority.getAuthority().equals("ROLE_ADMIN")
+                );
+
+        return isAgentOrAdmin ? Long.valueOf(authentication.getName()) : null;
     }
 
     @Operation(summary = "매물-학교 거리 조회", description = "특정 매물과 등록된 모든 학교 건물 간의 거리를 반환합니다.")
@@ -186,6 +204,19 @@ public class HouseController {
     ) {
         Long userId = Long.valueOf(authentication.getName());
         houseService.deleteMyHouse(userId, houseId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{houseId}/status")
+    @Operation(summary = "내가 등록한 매물 공개 상태 변경", description = "현재 로그인한 AGENT가 등록한 매물의 공개 상태를 변경합니다.")
+    public ResponseEntity<Void> updateHouseListingStatus(
+            @Parameter(description = "매물 ID") @PathVariable Long houseId,
+            @RequestBody @Valid HouseListingStatusUpdateRequest request,
+            Authentication authentication
+    ) {
+        Long userId = Long.valueOf(authentication.getName());
+        houseService.updateMyHouseListingStatus(userId, houseId, request.listingStatus());
 
         return ResponseEntity.noContent().build();
     }
