@@ -82,6 +82,7 @@ public class ReviewService {
     }
 
     // 리뷰 수정
+    @Transactional
     public ReviewResponse updateReview(long userId, long reviewId, ReviewRequest request) {
         Review review = reviewRepository.findByIdAndUser_Id(reviewId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("리뷰를 찾을 수 없습니다."));
@@ -101,6 +102,7 @@ public class ReviewService {
     }
 
     // 리뷰 삭제
+    @Transactional
     public void deleteReview(long userId, long reviewId) {
         Review review = reviewRepository.findByIdAndUser_Id(reviewId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("리뷰를 찾을 수 없습니다."));
